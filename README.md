@@ -1,4 +1,4 @@
-# SWAMP: AWS Profile Manager
+# SWAMP: Profile Manager for AWS
 
 You can use `swamp` to switch AWS profiles with ease.
 
@@ -64,3 +64,7 @@ Wrote session token for profile target
 Token is valid until: 2017-07-06 08:46:10 +0000 UTC
 ...
 ```
+
+## Install
+
+Fetch the latest binary from https://github.com/felixb/swamp/releases or run `make` to compile it yourself.
