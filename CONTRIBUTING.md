@@ -1,3 +1,3 @@
 # Contributing
 
-Please for and send a pull request.
+Please fork and send a pull request.
