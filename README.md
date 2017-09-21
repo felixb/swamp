@@ -13,8 +13,18 @@ You can use `swamp` to switch AWS profiles with ease.
 
 #### Example:
 
+Create a session token based on your default profile:
+
 ```
-$ swamp -target-profile target -target-role admin -account [target-account-id]
+$ swamp -profile default -target-profile target -target-role admin -account [target-account-id]
+Wrote session token for profile target
+Token is valid until: 2017-07-06 08:31:10 +0000 UTC
+```
+
+Create a session token based on your instance profile when running in an ec2 instance or ecs task:
+
+```
+$ swamp -instance -target-profile target -target-role admin -account [target-account-id]
 Wrote session token for profile target
 Token is valid until: 2017-07-06 08:31:10 +0000 UTC
 ```
