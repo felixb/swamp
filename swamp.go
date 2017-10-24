@@ -170,9 +170,14 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 
 // assume-role into target account and write target profile into .aws/credentials
 func ensureTargetProfile(sess *session.Session, targetProfile, targetAccount, targetRole *string, duration *int64) {
+	var roleArn string
 	svc := sts.New(sess)
 
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", *targetAccount, *targetRole)
+	if strings.HasPrefix(*targetRole, "arn:aws:iam::") {
+		roleArn = *targetRole
+	} else {
+		roleArn = fmt.Sprintf("arn:aws:iam::%s:role/%s", *targetAccount, *targetRole)
+	}
 	userId := getCallerId(svc).Arn
 	roleSessionName := strings.Split(*userId, "/")[1]
 
@@ -186,7 +191,7 @@ func main() {
 	intermediateProfile := flag.String("intermediate-profile", "session-token", "Intermediate AWS CLI profile")
 	intermediateDuration := flag.Int64("intermediate-duration", INTERMEDIATE_SESSION_TOKEN_DURATION, "Token duration in seconds for intermediate profile")
 	targetProfile := flag.String("target-profile", "", "Write this AWS CLI profile")
-	targetRole := flag.String("target-role", "", "AWS role to assume")
+	targetRole := flag.String("target-role", "", "AWS role to assume (can either be ARN or name)")
 	targetDuration := flag.Int64("target-duration", TARGET_SESSION_TOKEN_DURATION, "Token duration in seconds for target profile")
 	profile := flag.String("profile", "default", "AWS CLI profile")
 	region := flag.String("region", "eu-central-1", "AWS region")
