@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"path/filepath"
 	"os"
 	"os/user"
 
@@ -17,7 +18,7 @@ import (
 
 const (
 	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
-	TARGET_SESSION_TOKEN_DURATION = int64(60 * 60)
+	TARGET_SESSION_TOKEN_DURATION       = int64(60 * 60)
 )
 
 var (
@@ -31,7 +32,7 @@ func flagUsage() {
 }
 
 func die(msg string, err error) {
-	fmt.Fprintf(os.Stderr, msg + ": %v\n", err)
+	fmt.Fprintf(os.Stderr, msg+": %v\n", err)
 	os.Exit(1)
 }
 
@@ -60,11 +61,17 @@ func writeProfile(cred *sts.Credentials, targetProfile, region *string) {
 	if err != nil {
 		die("Error fetching home dir", err)
 	}
-	filename := fmt.Sprintf("%s/.aws/credentials", usr.HomeDir)
+
+	awsPath := filepath.Join(usr.HomeDir, ".aws")
+	filename := filepath.Join(awsPath, "credentials")
 
 	cfg, err := ini.Load(filename)
 	if err != nil {
 		fmt.Printf("Unable to find credentials file %s. Creating new file.\n", filename)
+
+		if err := os.MkdirAll(awsPath, os.ModePerm); err != nil {
+			die("Error creating aws config path", err)
+		}
 		cfg = ini.Empty()
 	}
 	sec, err := cfg.GetSection(*targetProfile)
@@ -79,7 +86,9 @@ func writeProfile(cred *sts.Credentials, targetProfile, region *string) {
 	updateKey(sec, "aws_secret_access_key", cred.SecretAccessKey)
 	updateKey(sec, "aws_session_token", cred.SessionToken)
 
-	cfg.SaveTo(filename)
+	if err := cfg.SaveTo(filename); err != nil {
+		die("Error writing credentials file", err)
+	}
 
 	fmt.Printf("Wrote session token for profile %s\n", *targetProfile)
 	fmt.Printf("Token is valid until: %v\n", cred.Expiration)
@@ -121,8 +130,8 @@ func getSessionToken(options session.Options, duration *int64, tokenSerialNumber
 	svc := sts.New(sess)
 	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		DurationSeconds: duration,
-		SerialNumber: tokenSerialNumber,
-		TokenCode: getTokenCode(tokenSerialNumber),
+		SerialNumber:    tokenSerialNumber,
+		TokenCode:       getTokenCode(tokenSerialNumber),
 	})
 	if err != nil {
 		die("Error assuming role", err)
@@ -135,11 +144,11 @@ func getSessionToken(options session.Options, duration *int64, tokenSerialNumber
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(profile, targetProfile, tokenSerialNumber *string, duration *int64, region *string) {
 	if validateSessionToken(session.Options{Config: aws.Config{Region: region},
-		Profile: *targetProfile, }) {
+		Profile: *targetProfile,}) {
 		fmt.Printf("Session token for profile %s is still valid\n", *targetProfile)
 	} else {
 		cred := getSessionToken(session.Options{
-			Config: aws.Config{Region: region},
+			Config:  aws.Config{Region: region},
 			Profile: *profile,
 		}, duration, tokenSerialNumber)
 		writeProfile(cred, targetProfile, region)
@@ -148,7 +157,7 @@ func ensureSessionTokenProfile(profile, targetProfile, tokenSerialNumber *string
 
 func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64) *sts.Credentials {
 	output, err := svc.AssumeRole(&sts.AssumeRoleInput{
-		RoleArn: roleArn,
+		RoleArn:         roleArn,
 		RoleSessionName: roleSessionName,
 		DurationSeconds: duration,
 	})
@@ -160,10 +169,7 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 }
 
 // assume-role into target account and write target profile into .aws/credentials
-func ensureTargetProfile(profile, targetProfile, targetAccount, targetRole *string, duration *int64, region *string) {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		Config: aws.Config{Region: region},
-		Profile: *profile, }))
+func ensureTargetProfile(sess *session.Session, targetProfile, targetAccount, targetRole *string, duration *int64) {
 	svc := sts.New(sess)
 
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", *targetAccount, *targetRole)
@@ -171,7 +177,7 @@ func ensureTargetProfile(profile, targetProfile, targetAccount, targetRole *stri
 	roleSessionName := strings.Split(*userId, "/")[1]
 
 	cred := assumeRole(svc, &roleArn, &roleSessionName, duration)
-	writeProfile(cred, targetProfile, region)
+	writeProfile(cred, targetProfile, sess.Config.Region)
 }
 
 func main() {
@@ -185,6 +191,7 @@ func main() {
 	profile := flag.String("profile", "default", "AWS CLI profile")
 	region := flag.String("region", "eu-central-1", "AWS region")
 	tokenSerialNumber := flag.String("mfa-device", "", "MFA device arn")
+	useInstanceProfile := flag.Bool("instance", false, "Use instance profile")
 	renew := flag.Bool("renew", false, "renew token every duration/2")
 	flag.Usage = flagUsage
 	flag.Parse()
@@ -196,6 +203,18 @@ func main() {
 	checkStringFlagNotEmpty("target-role", targetRole)
 	checkStringFlagNotEmpty("profile", profile)
 	checkStringFlagNotEmpty("region", region)
+	if *useInstanceProfile {
+		if *tokenSerialNumber != "" {
+			fmt.Fprintln(os.Stderr, "Using MFA and instance profile is mutual exclusive")
+			flag.Usage()
+			os.Exit(1)
+		}
+		if *profile != "default" {
+			fmt.Fprintln(os.Stderr, "Using a profile and instance profile is mutual exclusive")
+			flag.Usage()
+			os.Exit(1)
+		}
+	}
 	if *tokenSerialNumber != "" {
 		checkStringFlagNotEmpty("intermediate-profile", intermediateProfile)
 		baseProfile = intermediateProfile
@@ -207,11 +226,20 @@ func main() {
 			ensureSessionTokenProfile(profile, intermediateProfile, tokenSerialNumber, intermediateDuration, region)
 		}
 
-		ensureTargetProfile(baseProfile, targetProfile, targetAccount, targetRole, targetDuration, region)
+		var sess *session.Session
+		if *useInstanceProfile {
+			sess = session.Must(session.NewSession())
+		} else {
+			sess = session.Must(session.NewSessionWithOptions(session.Options{
+				Config:  aws.Config{Region: region},
+				Profile: *baseProfile,}))
+		}
+
+		ensureTargetProfile(sess, targetProfile, targetAccount, targetRole, targetDuration)
 
 		if ! *renew {
 			break
 		}
-		time.Sleep(time.Second * time.Duration(*targetDuration / 2))
+		time.Sleep(time.Second * time.Duration(*targetDuration/2))
 	}
 }
