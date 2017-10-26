@@ -169,14 +169,13 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 }
 
 // assume-role into target account and write target profile into .aws/credentials
-func ensureTargetProfile(sess *session.Session, targetProfile, targetAccount, targetRole *string, duration *int64) {
+func ensureTargetProfile(sess *session.Session, targetProfile, targetRole *string, duration *int64) {
 	svc := sts.New(sess)
 
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", *targetAccount, *targetRole)
 	userId := getCallerId(svc).Arn
 	roleSessionName := strings.Split(*userId, "/")[1]
 
-	cred := assumeRole(svc, &roleArn, &roleSessionName, duration)
+	cred := assumeRole(svc, targetRole, &roleSessionName, duration)
 	writeProfile(cred, targetProfile, sess.Config.Region)
 }
 
@@ -186,7 +185,7 @@ func main() {
 	intermediateProfile := flag.String("intermediate-profile", "session-token", "Intermediate AWS CLI profile")
 	intermediateDuration := flag.Int64("intermediate-duration", INTERMEDIATE_SESSION_TOKEN_DURATION, "Token duration in seconds for intermediate profile")
 	targetProfile := flag.String("target-profile", "", "Write this AWS CLI profile")
-	targetRole := flag.String("target-role", "", "AWS role to assume")
+	targetRole := flag.String("target-role", "", "AWS role to assume (can either be ARN or name)")
 	targetDuration := flag.Int64("target-duration", TARGET_SESSION_TOKEN_DURATION, "Token duration in seconds for target profile")
 	profile := flag.String("profile", "default", "AWS CLI profile")
 	region := flag.String("region", "eu-central-1", "AWS region")
@@ -197,12 +196,20 @@ func main() {
 	flag.Parse()
 
 	// check user input on command line flags
+	var roleArn string
 	baseProfile := profile
-	checkStringFlagNotEmpty("account", targetAccount)
 	checkStringFlagNotEmpty("target-profile", targetProfile)
 	checkStringFlagNotEmpty("target-role", targetRole)
 	checkStringFlagNotEmpty("profile", profile)
 	checkStringFlagNotEmpty("region", region)
+
+	if strings.HasPrefix(*targetRole, "arn:aws:iam::") {
+		roleArn = *targetRole
+	} else {
+		checkStringFlagNotEmpty("account", targetAccount)
+		roleArn = fmt.Sprintf("arn:aws:iam::%s:role/%s", *targetAccount, *targetRole)
+	}
+
 	if *useInstanceProfile {
 		if *tokenSerialNumber != "" {
 			fmt.Fprintln(os.Stderr, "Using MFA and instance profile is mutual exclusive")
@@ -235,7 +242,7 @@ func main() {
 				Profile: *baseProfile,}))
 		}
 
-		ensureTargetProfile(sess, targetProfile, targetAccount, targetRole, targetDuration)
+		ensureTargetProfile(sess, targetProfile, &roleArn, targetDuration)
 
 		if ! *renew {
 			break
