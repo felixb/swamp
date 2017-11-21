@@ -1,6 +1,6 @@
 .PHONY: build clean
 
-VERSION=$(shell git rev-parse HEAD)
+VERSION=$(shell git describe --tags)
 
 build: swamp_amd64 swamp_darwin
 
