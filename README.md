@@ -75,6 +75,21 @@ Token is valid until: 2017-07-06 08:46:10 +0000 UTC
 ...
 ```
 
+### Set profile in environment
+`swamp` allows setting a profile as `AWS_PROFILE` in the environment. In order to activate this, at least `-export-profile` must be set.
+This tells swamp to write the profile to the a file (default is `/tmp/current_swamp_profile`) which can then be sourced and used in your shell. If you want to specify the file the profile is written to, you must also set `export-file`.
+
+#### Example
+With `export-file`:
+```
+$ swamp -target-profile target -target-role admin -account [target-account-id] -mfa-device arn:aws:iam::[origin-account-id]:mfa/[userid] -export-profile && source /tmp/current_swamp_profile
+```
+
+When setting `export-file` yourself:
+```
+$ swamp -target-profile target -target-role admin -account [target-account-id] -mfa-device arn:aws:iam::[origin-account-id]:mfa/[userid] -export-profile -export-file [/path/to/file] && source [/path/to/file]
+```
+
 ## Install
 
 Fetch the latest binary from https://github.com/felixb/swamp/releases or run `make` to compile it yourself.
