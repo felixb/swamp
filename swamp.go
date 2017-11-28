@@ -179,6 +179,16 @@ func ensureTargetProfile(sess *session.Session, targetProfile, targetRole *strin
 	writeProfile(cred, targetProfile, sess.Config.Region)
 }
 
+func writeProfileToFile(export, profile string) {
+	file, err := os.Create(export)
+	if err != nil {
+		die("Error creating temp file for setting profile", err)
+	}
+	defer file.Close()
+
+	fmt.Fprintf(file, "export AWS_PROFILE=%s\n", profile)
+}
+
 func main() {
 	// set up command line flags
 	targetAccount := flag.String("account", "", "AWS account")
@@ -192,6 +202,8 @@ func main() {
 	tokenSerialNumber := flag.String("mfa-device", "", "MFA device arn")
 	useInstanceProfile := flag.Bool("instance", false, "Use instance profile")
 	renew := flag.Bool("renew", false, "renew token every duration/2")
+	exportProfile := flag.Bool("export-profile", false, "set AWS_PROFILE in environment")
+	exportFile := flag.String("export-file", "/tmp/current_swamp_profile", "File to write AWS_PROFILE to, defaults to '/tmp/current_swamp_profile'")
 	flag.Usage = flagUsage
 	flag.Parse()
 
@@ -202,6 +214,12 @@ func main() {
 	checkStringFlagNotEmpty("target-role", targetRole)
 	checkStringFlagNotEmpty("profile", profile)
 	checkStringFlagNotEmpty("region", region)
+
+	if *exportProfile && *renew {
+		fmt.Fprintln(os.Stderr, "Using renew and export-profile is mutual exclusive")
+		flag.Usage()
+		os.Exit(1)
+	}
 
 	if strings.HasPrefix(*targetRole, "arn:aws:iam::") {
 		roleArn = *targetRole
@@ -243,6 +261,11 @@ func main() {
 		}
 
 		ensureTargetProfile(sess, targetProfile, &roleArn, targetDuration)
+
+		if *exportProfile {
+			checkStringFlagNotEmpty("export-file", exportFile)
+			writeProfileToFile(*exportFile, *targetProfile)
+		}
 
 		if ! *renew {
 			break
