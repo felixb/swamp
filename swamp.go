@@ -186,7 +186,7 @@ func writeProfileToFile(export, profile string) {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "export AWS_PROFILE=%s\n", profile)
+	fmt.Fprintf(file, "export AWS_PROFILE=%s\nunset AWS_ACCESS_KEY_ID\nunset AWS_SECRET_ACCESS_KEY\n", profile)
 }
 
 func main() {
