@@ -1,8 +1,13 @@
 # Changelog
 
+## swamp v0.4
+
+* Use existing session name for new sessions
+* Write file for easy setting target profile in your shell (#5)
+
 ## swamp v0.3
 
-* Allow setting `--target-role` as `arn`
+* Allow setting `--target-role` as `arn` (#4)
 
 ## swamp v0.2
 
