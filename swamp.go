@@ -173,7 +173,8 @@ func ensureTargetProfile(sess *session.Session, targetProfile, targetRole *strin
 	svc := sts.New(sess)
 
 	userId := getCallerId(svc).Arn
-	roleSessionName := strings.Split(*userId, "/")[1]
+	parts := strings.Split(*userId, "/")
+	roleSessionName := parts[len(parts) -1]
 
 	cred := assumeRole(svc, targetRole, &roleSessionName, duration)
 	writeProfile(cred, targetProfile, sess.Config.Region)
