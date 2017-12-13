@@ -114,7 +114,7 @@ func getTokenCode(tokenSerialNumber *string) *string {
 	if err != nil {
 		die("Error reading mfa token", err)
 	}
-	tokenCode = strings.Trim(tokenCode, "\n")
+	tokenCode = strings.Trim(tokenCode, "\r\n")
 	return &tokenCode
 }
 
