@@ -1,5 +1,10 @@
 # Changelog
 
+## swamp v0.5
+
+* Support windows
+* Strip blanks from mfa input
+
 ## swamp v0.4
 
 * Use existing session name for new sessions
