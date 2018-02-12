@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.5.1
+
+* disable cgo for linux build
+
 ## swamp v0.5
 
 * Support windows
