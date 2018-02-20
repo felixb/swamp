@@ -1,5 +1,10 @@
 # Changelog
 
+## swamp v0.5.2
+
+* enable cgo for default linux build
+* disable cgo for alpine linux build
+
 ## swamp v0.5.1
 
 * disable cgo for linux build

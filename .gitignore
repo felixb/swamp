@@ -16,4 +16,5 @@
 .idea/
 .get-deps
 *_amd64
+*_alpine
 *_darwin

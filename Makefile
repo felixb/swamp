@@ -2,7 +2,7 @@
 
 VERSION=$(shell git describe --tags)
 
-build: swamp_amd64 swamp_darwin swamp.exe
+build: swamp_amd64 swamp_alpine swamp_darwin swamp.exe
 
 .get-deps: *.go
 	go get -t -d -v ./...
@@ -13,6 +13,9 @@ clean:
 	rm -f *_amd64 *_darwin *.exe
 
 swamp_amd64: .get-deps *.go
+	 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags "-X main.version=$(VERSION)" -o $@ *.go
+
+swamp_alpine: .get-deps *.go
 	 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.version=$(VERSION)" -o $@ *.go
 
 swamp_darwin: .get-deps *.go
