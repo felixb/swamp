@@ -4,21 +4,21 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"path/filepath"
 	"os"
 	"os/user"
-
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/go-ini/ini"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/go-ini/ini"
 )
 
 const (
 	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
-	TARGET_SESSION_TOKEN_DURATION       = int64(60 * 60)
+	TARGET_SESSION_TOKEN_DURATION = int64(60 * 60)
 )
 
 var (
@@ -32,7 +32,7 @@ func flagUsage() {
 }
 
 func die(msg string, err error) {
-	fmt.Fprintf(os.Stderr, msg+": %v\n", err)
+	fmt.Fprintf(os.Stderr, msg + ": %v\n", err)
 	os.Exit(1)
 }
 
@@ -144,7 +144,7 @@ func getSessionToken(options session.Options, duration *int64, tokenSerialNumber
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(profile, targetProfile, tokenSerialNumber *string, duration *int64, region *string) {
 	if validateSessionToken(session.Options{Config: aws.Config{Region: region},
-		Profile: *targetProfile,}) {
+		Profile: *targetProfile, }) {
 		fmt.Printf("Session token for profile %s is still valid\n", *targetProfile)
 	} else {
 		cred := getSessionToken(session.Options{
@@ -174,7 +174,7 @@ func ensureTargetProfile(sess *session.Session, targetProfile, targetRole *strin
 
 	userId := getCallerId(svc).Arn
 	parts := strings.Split(*userId, "/")
-	roleSessionName := parts[len(parts) -1]
+	roleSessionName := parts[len(parts) - 1]
 
 	cred := assumeRole(svc, targetRole, &roleSessionName, duration)
 	writeProfile(cred, targetProfile, sess.Config.Region)
@@ -258,7 +258,7 @@ func main() {
 		} else {
 			sess = session.Must(session.NewSessionWithOptions(session.Options{
 				Config:  aws.Config{Region: region},
-				Profile: *baseProfile,}))
+				Profile: *baseProfile, }))
 		}
 
 		ensureTargetProfile(sess, targetProfile, &roleArn, targetDuration)
@@ -271,6 +271,6 @@ func main() {
 		if ! *renew {
 			break
 		}
-		time.Sleep(time.Second * time.Duration(*targetDuration/2))
+		time.Sleep(time.Second * time.Duration(*targetDuration / 2))
 	}
 }
