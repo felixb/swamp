@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.6
+
+* add locking for credentials file (#6)
+
 ## swamp v0.5.2
 
 * enable cgo for default linux build

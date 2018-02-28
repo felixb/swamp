@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/go-ini/ini"
+	"github.com/golang-utils/lockfile"
 )
 
 const (
@@ -63,11 +64,23 @@ func writeProfile(cred *sts.Credentials, targetProfile, region *string) {
 	}
 
 	awsPath := filepath.Join(usr.HomeDir, ".aws")
-	filename := filepath.Join(awsPath, "credentials")
+	credentialsPath := filepath.Join(awsPath, "credentials")
+	lockPath := filepath.Join(awsPath, ".credentials.lock")
 
-	cfg, err := ini.Load(filename)
+	// get a lock to prevent concurrent writes on credentials file
+	lock := lockfile.New()
+	for {
+		if err := lock.Lock(lockPath); err == nil {
+			break
+		} else {
+			fmt.Printf("Waiting for lock %s\n", lockPath)
+			time.Sleep(time.Second)
+		}
+	}
+
+	cfg, err := ini.Load(credentialsPath)
 	if err != nil {
-		fmt.Printf("Unable to find credentials file %s. Creating new file.\n", filename)
+		fmt.Printf("Unable to find credentials file %s. Creating new file.\n", credentialsPath)
 
 		if err := os.MkdirAll(awsPath, os.ModePerm); err != nil {
 			die("Error creating aws config path", err)
@@ -86,9 +99,12 @@ func writeProfile(cred *sts.Credentials, targetProfile, region *string) {
 	updateKey(sec, "aws_secret_access_key", cred.SecretAccessKey)
 	updateKey(sec, "aws_session_token", cred.SessionToken)
 
-	if err := cfg.SaveTo(filename); err != nil {
+	if err := cfg.SaveTo(credentialsPath); err != nil {
 		die("Error writing credentials file", err)
 	}
+
+	// release the lock manually
+	os.Remove(lockPath)
 
 	fmt.Printf("Wrote session token for profile %s\n", *targetProfile)
 	fmt.Printf("Token is valid until: %v\n", cred.Expiration)
