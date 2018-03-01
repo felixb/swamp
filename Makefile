@@ -13,13 +13,13 @@ clean:
 	rm -f *_amd64 *_darwin *.exe
 
 swamp_amd64: .get-deps *.go
-	 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags "-X main.version=$(VERSION)" -o $@ *.go
+	 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o $@ *.go
 
 swamp_alpine: .get-deps *.go
-	 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.version=$(VERSION)" -o $@ *.go
+	 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ *.go
 
 swamp_darwin: .get-deps *.go
-	GOOS=darwin go build -ldflags "-X main.version=$(VERSION)" -o $@ *.go
+	GOOS=darwin go build -o $@ *.go
 
 swamp.exe: .get-deps *.go
-	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ *.go
+	GOOS=windows GOARCH=amd64 go build -o $@ *.go

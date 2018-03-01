@@ -17,32 +17,9 @@ import (
 	"github.com/golang-utils/lockfile"
 )
 
-const (
-	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
-	TARGET_SESSION_TOKEN_DURATION = int64(60 * 60)
-)
-
-var (
-	version string
-)
-
-func flagUsage() {
-	fmt.Fprintf(os.Stderr, "Version of %s: %s\n", os.Args[0], version)
-	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-	flag.PrintDefaults()
-}
-
 func die(msg string, err error) {
 	fmt.Fprintf(os.Stderr, msg + ": %v\n", err)
 	os.Exit(1)
-}
-
-func checkStringFlagNotEmpty(name string, f *string) {
-	if f == nil || *f == "" {
-		fmt.Fprintf(os.Stderr, "Missing mandatory parameter: %s\n", name)
-		flag.Usage()
-		os.Exit(1)
-	}
 }
 
 func updateKey(sec *ini.Section, name string, value *string) {
@@ -119,19 +96,20 @@ func getCallerId(svc *sts.STS) *sts.GetCallerIdentityOutput {
 	return output
 }
 
-func getTokenCode(tokenSerialNumber *string) *string {
-	if tokenSerialNumber == nil {
+func getTokenCode(tokenSerialNumber string) *string {
+	if tokenSerialNumber == "" {
 		return nil
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Enter mfa token for %s: ", *tokenSerialNumber)
-	tokenCode, err := reader.ReadString('\n')
-	if err != nil {
+	fmt.Printf("Enter mfa token for %s: ", tokenSerialNumber)
+	if tokenCode, err := reader.ReadString('\n'); err != nil {
 		die("Error reading mfa token", err)
+		return nil
+	} else {
+		tokenCode = strings.Trim(tokenCode, " \r\n")
+		return &tokenCode
 	}
-	tokenCode = strings.Trim(tokenCode, " \r\n")
-	return &tokenCode
 }
 
 func validateSessionToken(options session.Options) bool {
@@ -141,16 +119,16 @@ func validateSessionToken(options session.Options) bool {
 	return err == nil
 }
 
-func getSessionToken(options session.Options, duration *int64, tokenSerialNumber *string) *sts.Credentials {
+func getSessionToken(options session.Options, config *SwampConfig) *sts.Credentials {
 	sess := session.Must(session.NewSessionWithOptions(options))
 	svc := sts.New(sess)
 	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
-		DurationSeconds: duration,
-		SerialNumber:    tokenSerialNumber,
-		TokenCode:       getTokenCode(tokenSerialNumber),
+		DurationSeconds: &config.intermediateDuration,
+		SerialNumber:    &config.tokenSerialNumber,
+		TokenCode:       getTokenCode(config.tokenSerialNumber),
 	})
 	if err != nil {
-		die("Error assuming role", err)
+		die("Error getting session token", err)
 	}
 
 	return output.Credentials
@@ -158,16 +136,18 @@ func getSessionToken(options session.Options, duration *int64, tokenSerialNumber
 
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
-func ensureSessionTokenProfile(profile, targetProfile, tokenSerialNumber *string, duration *int64, region *string) {
-	if validateSessionToken(session.Options{Config: aws.Config{Region: region},
-		Profile: *targetProfile, }) {
-		fmt.Printf("Session token for profile %s is still valid\n", *targetProfile)
+func ensureSessionTokenProfile(config *SwampConfig) {
+	if validateSessionToken(session.Options{
+		Config:  aws.Config{Region: &config.region},
+		Profile: config.intermediateProfile,
+	}) {
+		fmt.Printf("Session token for profile %s is still valid\n", config.profile)
 	} else {
 		cred := getSessionToken(session.Options{
-			Config:  aws.Config{Region: region},
-			Profile: *profile,
-		}, duration, tokenSerialNumber)
-		writeProfile(cred, targetProfile, region)
+			Config:  aws.Config{Region: &config.region},
+			Profile: config.profile,
+		}, config)
+		writeProfile(cred, &config.intermediateProfile, &config.region)
 	}
 }
 
@@ -185,108 +165,65 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 }
 
 // assume-role into target account and write target profile into .aws/credentials
-func ensureTargetProfile(sess *session.Session, targetProfile, targetRole *string, duration *int64) {
+func ensureTargetProfile(sess *session.Session, config *SwampConfig) {
 	svc := sts.New(sess)
 
 	userId := getCallerId(svc).Arn
 	parts := strings.Split(*userId, "/")
 	roleSessionName := parts[len(parts) - 1]
 
-	cred := assumeRole(svc, targetRole, &roleSessionName, duration)
-	writeProfile(cred, targetProfile, sess.Config.Region)
+	cred := assumeRole(svc, config.GetRoleArn(), &roleSessionName, &config.targetDuration)
+	writeProfile(cred, &config.targetProfile, sess.Config.Region)
 }
 
-func writeProfileToFile(export, profile string) {
-	file, err := os.Create(export)
+func writeProfileToFile(config *SwampConfig) {
+	file, err := os.Create(config.exportFile)
 	if err != nil {
-		die("Error creating temp file for setting profile", err)
+		die("Error writing target profile to export file", err)
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "export AWS_PROFILE=%s\nunset AWS_ACCESS_KEY_ID\nunset AWS_SECRET_ACCESS_KEY\n", profile)
+	fmt.Fprintf(file, "export AWS_PROFILE=%s\nunset AWS_ACCESS_KEY_ID\nunset AWS_SECRET_ACCESS_KEY\n", config.targetProfile)
 }
 
 func main() {
 	// set up command line flags
-	targetAccount := flag.String("account", "", "AWS account")
-	intermediateProfile := flag.String("intermediate-profile", "session-token", "Intermediate AWS CLI profile")
-	intermediateDuration := flag.Int64("intermediate-duration", INTERMEDIATE_SESSION_TOKEN_DURATION, "Token duration in seconds for intermediate profile")
-	targetProfile := flag.String("target-profile", "", "Write this AWS CLI profile")
-	targetRole := flag.String("target-role", "", "AWS role to assume (can either be ARN or name)")
-	targetDuration := flag.Int64("target-duration", TARGET_SESSION_TOKEN_DURATION, "Token duration in seconds for target profile")
-	profile := flag.String("profile", "default", "AWS CLI profile")
-	region := flag.String("region", "eu-central-1", "AWS region")
-	tokenSerialNumber := flag.String("mfa-device", "", "MFA device arn")
-	useInstanceProfile := flag.Bool("instance", false, "Use instance profile")
-	renew := flag.Bool("renew", false, "renew token every duration/2")
-	exportProfile := flag.Bool("export-profile", false, "set AWS_PROFILE in environment")
-	exportFile := flag.String("export-file", "/tmp/current_swamp_profile", "File to write AWS_PROFILE to, defaults to '/tmp/current_swamp_profile'")
-	flag.Usage = flagUsage
+	config := NewSwampConfig()
+	config.SetupFlags()
 	flag.Parse()
 
 	// check user input on command line flags
-	var roleArn string
-	baseProfile := profile
-	checkStringFlagNotEmpty("target-profile", targetProfile)
-	checkStringFlagNotEmpty("target-role", targetRole)
-	checkStringFlagNotEmpty("profile", profile)
-	checkStringFlagNotEmpty("region", region)
+	baseProfile := &config.profile
+	config.Validate()
 
-	if *exportProfile && *renew {
-		fmt.Fprintln(os.Stderr, "Using renew and export-profile is mutual exclusive")
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	if strings.HasPrefix(*targetRole, "arn:aws:iam::") {
-		roleArn = *targetRole
-	} else {
-		checkStringFlagNotEmpty("account", targetAccount)
-		roleArn = fmt.Sprintf("arn:aws:iam::%s:role/%s", *targetAccount, *targetRole)
-	}
-
-	if *useInstanceProfile {
-		if *tokenSerialNumber != "" {
-			fmt.Fprintln(os.Stderr, "Using MFA and instance profile is mutual exclusive")
-			flag.Usage()
-			os.Exit(1)
-		}
-		if *profile != "default" {
-			fmt.Fprintln(os.Stderr, "Using a profile and instance profile is mutual exclusive")
-			flag.Usage()
-			os.Exit(1)
-		}
-	}
-	if *tokenSerialNumber != "" {
-		checkStringFlagNotEmpty("intermediate-profile", intermediateProfile)
-		baseProfile = intermediateProfile
+	if config.tokenSerialNumber != "" {
+		baseProfile = &config.intermediateProfile
 	}
 
 	for {
-		if *tokenSerialNumber != "" {
+		if config.tokenSerialNumber != "" {
 			// get intermediate session token with mfa, use that to assume role into target account
-			ensureSessionTokenProfile(profile, intermediateProfile, tokenSerialNumber, intermediateDuration, region)
+			ensureSessionTokenProfile(config)
 		}
 
 		var sess *session.Session
-		if *useInstanceProfile {
+		if config.useInstanceProfile {
 			sess = session.Must(session.NewSession())
 		} else {
 			sess = session.Must(session.NewSessionWithOptions(session.Options{
-				Config:  aws.Config{Region: region},
+				Config:  aws.Config{Region: &config.region},
 				Profile: *baseProfile, }))
 		}
 
-		ensureTargetProfile(sess, targetProfile, &roleArn, targetDuration)
+		ensureTargetProfile(sess, config)
 
-		if *exportProfile {
-			checkStringFlagNotEmpty("export-file", exportFile)
-			writeProfileToFile(*exportFile, *targetProfile)
+		if config.exportProfile {
+			writeProfileToFile(config)
 		}
 
-		if ! *renew {
+		if !config.renew {
 			break
 		}
-		time.Sleep(time.Second * time.Duration(*targetDuration / 2))
+		time.Sleep(time.Second * time.Duration(config.targetDuration / 2))
 	}
 }
