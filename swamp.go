@@ -5,86 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/user"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/go-ini/ini"
-	"github.com/golang-utils/lockfile"
 )
 
 func die(msg string, err error) {
 	fmt.Fprintf(os.Stderr, msg + ": %v\n", err)
 	os.Exit(1)
-}
-
-func updateKey(sec *ini.Section, name string, value *string) {
-	key, err := sec.GetKey(name)
-	if err != nil {
-		_, err := sec.NewKey(name, *value)
-		if err != nil {
-			die("Error creating config key", err)
-		}
-	} else {
-		key.SetValue(*value)
-	}
-}
-
-func writeProfile(cred *sts.Credentials, targetProfile, region *string) {
-	usr, err := user.Current()
-	if err != nil {
-		die("Error fetching home dir", err)
-	}
-
-	awsPath := filepath.Join(usr.HomeDir, ".aws")
-	credentialsPath := filepath.Join(awsPath, "credentials")
-	lockPath := filepath.Join(awsPath, ".credentials.lock")
-
-	// get a lock to prevent concurrent writes on credentials file
-	lock := lockfile.New()
-	for {
-		if err := lock.Lock(lockPath); err == nil {
-			break
-		} else {
-			fmt.Printf("Waiting for lock %s\n", lockPath)
-			time.Sleep(time.Second)
-		}
-	}
-
-	cfg, err := ini.Load(credentialsPath)
-	if err != nil {
-		fmt.Printf("Unable to find credentials file %s. Creating new file.\n", credentialsPath)
-
-		if err := os.MkdirAll(awsPath, os.ModePerm); err != nil {
-			die("Error creating aws config path", err)
-		}
-		cfg = ini.Empty()
-	}
-	sec, err := cfg.GetSection(*targetProfile)
-	if err != nil {
-		sec, err = cfg.NewSection(*targetProfile)
-		if err != nil {
-			die("Error creating new section", err)
-		}
-	}
-	updateKey(sec, "region", region)
-	updateKey(sec, "aws_access_key_id", cred.AccessKeyId)
-	updateKey(sec, "aws_secret_access_key", cred.SecretAccessKey)
-	updateKey(sec, "aws_session_token", cred.SessionToken)
-
-	if err := cfg.SaveTo(credentialsPath); err != nil {
-		die("Error writing credentials file", err)
-	}
-
-	// release the lock manually
-	os.Remove(lockPath)
-
-	fmt.Printf("Wrote session token for profile %s\n", *targetProfile)
-	fmt.Printf("Token is valid until: %v\n", cred.Expiration)
 }
 
 func getCallerId(svc *sts.STS) *sts.GetCallerIdentityOutput {
@@ -136,7 +67,7 @@ func getSessionToken(options session.Options, config *SwampConfig) *sts.Credenti
 
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
-func ensureSessionTokenProfile(config *SwampConfig) {
+func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
 	if validateSessionToken(session.Options{
 		Config:  aws.Config{Region: &config.region},
 		Profile: config.intermediateProfile,
@@ -147,7 +78,7 @@ func ensureSessionTokenProfile(config *SwampConfig) {
 			Config:  aws.Config{Region: &config.region},
 			Profile: config.profile,
 		}, config)
-		writeProfile(cred, &config.intermediateProfile, &config.region)
+		pw.writeProfile(cred, &config.intermediateProfile, &config.region)
 	}
 }
 
@@ -165,7 +96,7 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 }
 
 // assume-role into target account and write target profile into .aws/credentials
-func ensureTargetProfile(sess *session.Session, config *SwampConfig) {
+func ensureTargetProfile(config *SwampConfig, pw *ProfileWriter, sess *session.Session) {
 	svc := sts.New(sess)
 
 	userId := getCallerId(svc).Arn
@@ -173,7 +104,7 @@ func ensureTargetProfile(sess *session.Session, config *SwampConfig) {
 	roleSessionName := parts[len(parts) - 1]
 
 	cred := assumeRole(svc, config.GetRoleArn(), &roleSessionName, &config.targetDuration)
-	writeProfile(cred, &config.targetProfile, sess.Config.Region)
+	pw.writeProfile(cred, &config.targetProfile, sess.Config.Region)
 }
 
 func writeProfileToFile(config *SwampConfig) {
@@ -200,10 +131,11 @@ func main() {
 		baseProfile = &config.intermediateProfile
 	}
 
+	pw := NewProfileWriter()
 	for {
 		if config.tokenSerialNumber != "" {
 			// get intermediate session token with mfa, use that to assume role into target account
-			ensureSessionTokenProfile(config)
+			ensureSessionTokenProfile(config, pw)
 		}
 
 		var sess *session.Session
@@ -215,7 +147,7 @@ func main() {
 				Profile: *baseProfile, }))
 		}
 
-		ensureTargetProfile(sess, config)
+		ensureTargetProfile(config, pw, sess)
 
 		if config.exportProfile {
 			writeProfileToFile(config)
