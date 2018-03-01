@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.7
+
+* add option to automatically obtain the mfa-device token
+
 ## swamp v0.6
 
 * add locking for credentials file (#6)

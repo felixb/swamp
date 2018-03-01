@@ -60,6 +60,14 @@ Token is valid until: 2017-07-06 08:32:15 +0000 UTC
 `swamp` allows running in a loop to create a new profile for the target account before credentials expire.
 It even works with enabled MFA thanks to the cached intermediate credentials.
 
+### Auto-Obtain MFA Token _BETA_
+if using swamp if an mfa-enabled account you can use the `-mfa-auto` flag to tell swamp
+to try to obtain the current token itself via `ykman`. So be sure to install the yubikey manager first.
+
+_Currently this will only work if there's only one oauth-token setted up in your
+yubikey authenticator_
+
+
 #### Example
 
 ```
