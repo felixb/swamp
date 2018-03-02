@@ -1,4 +1,4 @@
-# SWAMP: Profile Manager for AWS
+# SWAMP: Profile Manager for AWS [![Build Status](https://travis-ci.org/felixb/swamp.svg?branch=master)](https://travis-ci.org/felixb/swamp)
 
 You can use `swamp` to switch AWS profiles with ease.
 
