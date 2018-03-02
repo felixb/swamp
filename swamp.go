@@ -1,8 +1,8 @@
 package main
 
 import (
-    "bufio"
-    "os/exec"
+	"bufio"
+	"os/exec"
 	"flag"
 	"fmt"
 	"os"
@@ -20,7 +20,7 @@ import (
 
 const (
 	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
-	TARGET_SESSION_TOKEN_DURATION = int64(60 * 60)
+	TARGET_SESSION_TOKEN_DURATION       = int64(60 * 60)
 )
 
 var (
@@ -34,7 +34,7 @@ func flagUsage() {
 }
 
 func die(msg string, err error) {
-	fmt.Fprintf(os.Stderr, msg + ": %v\n", err)
+	fmt.Fprintf(os.Stderr, msg+": %v\n", err)
 	os.Exit(1)
 }
 
@@ -120,18 +120,16 @@ func getCallerId(svc *sts.STS) *sts.GetCallerIdentityOutput {
 	return output
 }
 
-func fetchTokenCode(tokenSerialNumber *string) *string {
+func fetchTokenCode(tokenSerialNumber *string, cmd string) *string {
 	if tokenSerialNumber == nil {
 		return nil
 	}
 
-    fmt.Printf("Obtaining mfa token for: %s \n", *tokenSerialNumber)
-    cmd := "ykman oath code | awk '{ printf \"%s\",$NF }'"
-    output, err := exec.Command("bash","-c",cmd).Output()
-    if err != nil {
-         die("Failed to ge mfa-device token", err)
-    }
-    fmt.Printf("Using mfa token: %s \n", string(output))
+	fmt.Printf("Obtaining mfa token for: %s \n", *tokenSerialNumber)
+	output, err := exec.Command("bash", "-c", cmd).Output()
+	if err != nil {
+		die("Failed to ge mfa-device token", err)
+	}
 	tokenCode := strings.Trim(string(output), " \r\n")
 	return &tokenCode
 }
@@ -158,15 +156,15 @@ func validateSessionToken(options session.Options) bool {
 	return err == nil
 }
 
-func getSessionToken(options session.Options, duration *int64, tokenSerialNumber *string, mfaAuto *bool) *sts.Credentials {
+func getSessionToken(options session.Options, duration *int64, tokenSerialNumber *string, mfaExec string) *sts.Credentials {
 	sess := session.Must(session.NewSessionWithOptions(options))
 	svc := sts.New(sess)
 	var tokenCode *string
-    if *mfaAuto {
-      tokenCode = fetchTokenCode(tokenSerialNumber)
-    } else {
-      tokenCode = askForTokenCode(tokenSerialNumber)
-    }
+	if len(mfaExec) > 0 {
+		tokenCode = fetchTokenCode(tokenSerialNumber, mfaExec)
+	} else {
+		tokenCode = askForTokenCode(tokenSerialNumber)
+	}
 	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		DurationSeconds: duration,
 		SerialNumber:    tokenSerialNumber,
@@ -181,15 +179,15 @@ func getSessionToken(options session.Options, duration *int64, tokenSerialNumber
 
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
-func ensureSessionTokenProfile(profile, targetProfile, tokenSerialNumber *string, duration *int64, region *string, mfaAuto *bool) {
+func ensureSessionTokenProfile(profile, targetProfile, tokenSerialNumber *string, duration *int64, region *string, mfaExec string) {
 	if validateSessionToken(session.Options{Config: aws.Config{Region: region},
-		Profile: *targetProfile, }) {
+		Profile: *targetProfile,}) {
 		fmt.Printf("Session token for profile %s is still valid\n", *targetProfile)
 	} else {
 		cred := getSessionToken(session.Options{
 			Config:  aws.Config{Region: region},
 			Profile: *profile,
-		}, duration, tokenSerialNumber, mfaAuto)
+		}, duration, tokenSerialNumber, mfaExec)
 		writeProfile(cred, targetProfile, region)
 	}
 }
@@ -213,7 +211,7 @@ func ensureTargetProfile(sess *session.Session, targetProfile, targetRole *strin
 
 	userId := getCallerId(svc).Arn
 	parts := strings.Split(*userId, "/")
-	roleSessionName := parts[len(parts) - 1]
+	roleSessionName := parts[len(parts)-1]
 
 	cred := assumeRole(svc, targetRole, &roleSessionName, duration)
 	writeProfile(cred, targetProfile, sess.Config.Region)
@@ -241,7 +239,7 @@ func main() {
 	region := flag.String("region", "eu-central-1", "AWS region")
 	tokenSerialNumber := flag.String("mfa-device", "", "MFA device arn")
 	useInstanceProfile := flag.Bool("instance", false, "Use instance profile")
-	selfObtainMFAToken := flag.Bool("mfa-auto", false, "obtain mfa-device token automatically")
+	mfaExec := flag.String("mfa-exec", "", "run command to obtain mfa-device token")
 	renew := flag.Bool("renew", false, "renew token every duration/2")
 	exportProfile := flag.Bool("export-profile", false, "set AWS_PROFILE in environment")
 	exportFile := flag.String("export-file", "/tmp/current_swamp_profile", "File to write AWS_PROFILE to, defaults to '/tmp/current_swamp_profile'")
@@ -289,7 +287,8 @@ func main() {
 	for {
 		if *tokenSerialNumber != "" {
 			// get intermediate session token with mfa, use that to assume role into target account
-			ensureSessionTokenProfile(profile, intermediateProfile, tokenSerialNumber, intermediateDuration, region, selfObtainMFAToken)
+			mfaExecValue := *mfaExec
+			ensureSessionTokenProfile(profile, intermediateProfile, tokenSerialNumber, intermediateDuration, region, mfaExecValue)
 		}
 
 		var sess *session.Session
@@ -298,7 +297,7 @@ func main() {
 		} else {
 			sess = session.Must(session.NewSessionWithOptions(session.Options{
 				Config:  aws.Config{Region: region},
-				Profile: *baseProfile, }))
+				Profile: *baseProfile,}))
 		}
 
 		ensureTargetProfile(sess, targetProfile, &roleArn, targetDuration)
@@ -311,6 +310,6 @@ func main() {
 		if ! *renew {
 			break
 		}
-		time.Sleep(time.Second * time.Duration(*targetDuration / 2))
+		time.Sleep(time.Second * time.Duration(*targetDuration/2))
 	}
 }
