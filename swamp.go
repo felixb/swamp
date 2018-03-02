@@ -78,7 +78,9 @@ func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
 			Config:  aws.Config{Region: &config.region},
 			Profile: config.profile,
 		}, config)
-		pw.writeProfile(cred, &config.intermediateProfile, &config.region)
+		if err := pw.WriteProfile(cred, &config.intermediateProfile, &config.region); err != nil {
+			die("Error writing profile", err)
+		}
 	}
 }
 
@@ -104,7 +106,9 @@ func ensureTargetProfile(config *SwampConfig, pw *ProfileWriter, sess *session.S
 	roleSessionName := parts[len(parts) - 1]
 
 	cred := assumeRole(svc, config.GetRoleArn(), &roleSessionName, &config.targetDuration)
-	pw.writeProfile(cred, &config.targetProfile, sess.Config.Region)
+	if err := pw.WriteProfile(cred, &config.targetProfile, sess.Config.Region); err != nil {
+		die("Error writing profile", err)
+	}
 }
 
 func writeProfileToFile(config *SwampConfig) {
@@ -131,7 +135,10 @@ func main() {
 		baseProfile = &config.intermediateProfile
 	}
 
-	pw := NewProfileWriter()
+	pw, err := NewProfileWriter()
+	if err != nil {
+		die("Error initializing profile writer", err)
+	}
 	for {
 		if config.tokenSerialNumber != "" {
 			// get intermediate session token with mfa, use that to assume role into target account
