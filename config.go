@@ -35,7 +35,7 @@ func NewSwampConfig() *SwampConfig {
 		targetAccount: "",
 		intermediateProfile: "session-token",
 		intermediateDuration: INTERMEDIATE_SESSION_TOKEN_DURATION,
-		targetProfile: "",
+		targetProfile: "swamp",
 		targetRole: "",
 		targetDuration: TARGET_SESSION_TOKEN_DURATION,
 		profile: "default",
