@@ -29,6 +29,7 @@ type SwampConfig struct {
 	renew                bool
 	exportProfile        bool
 	exportFile           string
+	mfaExec              string
 }
 
 func NewSwampConfig() *SwampConfig {
@@ -46,6 +47,7 @@ func NewSwampConfig() *SwampConfig {
 		renew:                false,
 		exportProfile:        false,
 		exportFile:           "/tmp/current_swamp_profile",
+		mfaExec:              "",
 	}
 }
 
@@ -74,6 +76,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.StringVar(&config.tokenSerialNumber, "mfa-device", config.tokenSerialNumber, "MFA device arn")
 	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "Use instance profile")
 	flag.BoolVar(&config.renew, "renew", config.renew, "renew token every duration/2")
+	flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "executable command for obtaining mfa-device token")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "set AWS_PROFILE in environment")
@@ -121,6 +124,12 @@ func (config *SwampConfig) Validate() error {
 
 	if config.tokenSerialNumber != "" {
 		if err := checkStringFlagNotEmpty("intermediate-profile", config.intermediateProfile); err != nil {
+			return err
+		}
+	}
+
+	if config.mfaExec != "" {
+		if err := checkStringFlagNotEmpty("mfa-device", config.tokenSerialNumber); err != nil {
 			return err
 		}
 	}

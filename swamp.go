@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"os/exec"
 )
 
 func die(msg string, err error) {
@@ -27,7 +28,22 @@ func getCallerId(svc *sts.STS) *sts.GetCallerIdentityOutput {
 	return output
 }
 
-func getTokenCode(tokenSerialNumber string) *string {
+func fetchTokenCode(tokenSerialNumber string, cmd string) *string {
+	if tokenSerialNumber == "" {
+		return nil
+	}
+
+	fmt.Printf("Obtaining mfa token for: %s \n", tokenSerialNumber)
+	if output, err := exec.Command("bash", "-c", cmd).Output(); err != nil {
+		die("Error obtaining mfa token", err)
+		return nil
+	} else {
+		tokenCode := string(output)
+		return &tokenCode
+	}
+}
+
+func askForTokenCode(tokenSerialNumber string) *string {
 	if tokenSerialNumber == "" {
 		return nil
 	}
@@ -53,10 +69,16 @@ func validateSessionToken(options session.Options) bool {
 func getSessionToken(options session.Options, config *SwampConfig) *sts.Credentials {
 	sess := session.Must(session.NewSessionWithOptions(options))
 	svc := sts.New(sess)
+	var tokenCode *string
+	if len(config.mfaExec) > 0 {
+		tokenCode = fetchTokenCode(config.tokenSerialNumber, config.mfaExec)
+	} else {
+		tokenCode = askForTokenCode(config.tokenSerialNumber)
+	}
 	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		DurationSeconds: &config.intermediateDuration,
 		SerialNumber:    &config.tokenSerialNumber,
-		TokenCode:       getTokenCode(config.tokenSerialNumber),
+		TokenCode:       tokenCode,
 	})
 	if err != nil {
 		die("Error getting session token", err)
