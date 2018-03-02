@@ -3,6 +3,7 @@
 ## swamp v0.7-snapshot
 
 * obey environment variable `AWS_SHARED_CREDENTIALS_FILE`
+* hide flags `-export-profile` and `-export-file` on windows
 
 ## swamp v0.6
 
