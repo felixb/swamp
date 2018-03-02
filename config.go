@@ -76,7 +76,10 @@ func (config *SwampConfig) SetupFlags() {
 	flag.StringVar(&config.tokenSerialNumber, "mfa-device", config.tokenSerialNumber, "MFA device arn")
 	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "Use instance profile")
 	flag.BoolVar(&config.renew, "renew", config.renew, "renew token every duration/2")
-	flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "executable command for obtaining mfa-device token")
+	if runtime.GOOS == "linux" {
+		//linux specific commands
+		flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "executable command for obtaining mfa-device token")
+	}
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "set AWS_PROFILE in environment")
