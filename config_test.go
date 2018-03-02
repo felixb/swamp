@@ -6,6 +6,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestSwampConfig_ValidateAccount(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetAccount = "1234567890"
+	c.targetRole = "some-role"
+
+	assert.NoError(t, c.Validate())
+}
+
+func TestSwampConfig_ValidateRole(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetAccount = ""
+	c.targetRole = "arn:aws:iam::1234567890:role/some-role"
+
+	assert.NoError(t, c.Validate())
+}
+
+func TestSwampConfig_ValidateRoleAndAccount(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetAccount = "1234567890"
+	c.targetRole = "arn:aws:iam::1234567890:role/some-role"
+
+	assert.Error(t, c.Validate())
+}
+
 func TestSwampConfig_GetRoleArnWithArn(t *testing.T) {
 	c := NewSwampConfig()
 	c.targetRole = "arn:aws:iam::1234567890:role/some-role"

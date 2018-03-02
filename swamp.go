@@ -128,8 +128,12 @@ func main() {
 	flag.Parse()
 
 	// check user input on command line flags
+	if err := config.Validate(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		flag.Usage()
+		os.Exit(1)
+	}
 	baseProfile := &config.profile
-	config.Validate()
 
 	if config.tokenSerialNumber != "" {
 		baseProfile = &config.intermediateProfile

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -76,54 +77,68 @@ func (config *SwampConfig) SetupFlags() {
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "set AWS_PROFILE in environment")
-		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to, defaults to '/tmp/current_swamp_profile'")
+		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to")
 	}
 	flag.Usage = flagUsage
 }
 
-func (config *SwampConfig) Validate() {
-	checkStringFlagNotEmpty("target-profile", config.targetProfile)
-	checkStringFlagNotEmpty("target-role", config.targetRole)
-	checkStringFlagNotEmpty("profile", config.profile)
-	checkStringFlagNotEmpty("region", config.region)
+func (config *SwampConfig) Validate() error {
+	if err := checkStringFlagNotEmpty("target-profile", config.targetProfile); err != nil {
+		return err
+	}
+	if err := checkStringFlagNotEmpty("target-role", config.targetRole); err != nil {
+		return err
+	}
+	if err := checkStringFlagNotEmpty("profile", config.profile); err != nil {
+		return err
+	}
+	if err := checkStringFlagNotEmpty("region", config.region); err != nil {
+		return err
+	}
+
 	if !config.isRoleArn() {
-		checkStringFlagNotEmpty("account", config.targetAccount)
+		if err := checkStringFlagNotEmpty("account", config.targetAccount); err != nil {
+			return err
+		}
+	} else {
+		if config.targetAccount != "" {
+			return errors.New("Target role in ARN format and target account are mutual exclusive")
+		}
 	}
 
 	if config.exportProfile && config.renew {
-		fmt.Fprintln(os.Stderr, "Using renew and export-profile is mutual exclusive")
-		flag.Usage()
-		os.Exit(1)
+		return errors.New("Using renew and export-profile is mutual exclusive")
 	}
 
 	if config.useInstanceProfile {
 		if config.tokenSerialNumber != "" {
-			fmt.Fprintln(os.Stderr, "Using MFA and instance profile is mutual exclusive")
-			flag.Usage()
-			os.Exit(1)
+			return errors.New("Using MFA and instance profile is mutual exclusive")
 		}
 		if config.profile != "default" {
-			fmt.Fprintln(os.Stderr, "Using a profile and instance profile is mutual exclusive")
-			flag.Usage()
-			os.Exit(1)
+			return errors.New("Using a profile and instance profile is mutual exclusive")
 		}
 	}
 
 	if config.tokenSerialNumber != "" {
-		checkStringFlagNotEmpty("intermediate-profile", config.intermediateProfile)
+		if err := checkStringFlagNotEmpty("intermediate-profile", config.intermediateProfile); err != nil {
+			return err
+		}
 	}
 
 	if config.exportProfile {
-		checkStringFlagNotEmpty("export-file", config.exportFile)
+		if err := checkStringFlagNotEmpty("export-file", config.exportFile); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func checkStringFlagNotEmpty(name string, f string) {
+func checkStringFlagNotEmpty(name string, f string) error {
 	if f == "" {
-		fmt.Fprintf(os.Stderr, "Missing mandatory parameter: %s\n", name)
-		flag.Usage()
-		os.Exit(1)
+		return fmt.Errorf("Missing mandatory parameter: %s", name)
 	}
+	return nil
 }
 
 func flagUsage() {
