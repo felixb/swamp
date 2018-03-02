@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.7-snapshot
+
+* obey environment variable `AWS_SHARED_CREDENTIALS_FILE`
+
 ## swamp v0.6
 
 * add locking for credentials file (#6)

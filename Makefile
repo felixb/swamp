@@ -1,4 +1,4 @@
-.PHONY: build clean
+.PHONY: build test clean
 
 VERSION=$(shell git describe --tags)
 
@@ -11,6 +11,9 @@ build: swamp_amd64 swamp_alpine swamp_darwin swamp.exe
 clean:
 	rm -f .get-deps
 	rm -f *_amd64 *_darwin *.exe
+
+test: .get-deps *.go
+	go test -v ./...
 
 swamp_amd64: .get-deps *.go
 	 GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -o $@ *.go
