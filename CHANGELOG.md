@@ -5,6 +5,7 @@
 * obey environment variable `AWS_SHARED_CREDENTIALS_FILE`
 * hide flags `-export-profile` and `-export-file` on windows
 * `-target-profile` defaults to `swamp`
+* add option to automatically obtain the mfa-device token
 
 ## swamp v0.6
 

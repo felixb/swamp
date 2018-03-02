@@ -29,6 +29,7 @@ type SwampConfig struct {
 	renew                bool
 	exportProfile        bool
 	exportFile           string
+	mfaExec              string
 }
 
 func NewSwampConfig() *SwampConfig {
@@ -46,6 +47,7 @@ func NewSwampConfig() *SwampConfig {
 		renew:                false,
 		exportProfile:        false,
 		exportFile:           "/tmp/current_swamp_profile",
+		mfaExec:              "",
 	}
 }
 
@@ -78,6 +80,7 @@ func (config *SwampConfig) SetupFlags() {
 		// platform specific flags
 		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "set AWS_PROFILE in environment")
 		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to")
+		flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "executable command for obtaining mfa-device token")
 	}
 	flag.Usage = flagUsage
 }
@@ -121,6 +124,12 @@ func (config *SwampConfig) Validate() error {
 
 	if config.tokenSerialNumber != "" {
 		if err := checkStringFlagNotEmpty("intermediate-profile", config.intermediateProfile); err != nil {
+			return err
+		}
+	}
+
+	if config.mfaExec != "" {
+		if err := checkStringFlagNotEmpty("mfa-device", config.tokenSerialNumber); err != nil {
 			return err
 		}
 	}
