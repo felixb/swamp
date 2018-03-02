@@ -26,10 +26,10 @@ func NewProfileWriter() (*ProfileWriter, error) {
 	} else {
 		awsPath, _ := path.Split(credentialsPath)
 		return &ProfileWriter{
-			lock: lockfile.New(),
-			awsPath: awsPath,
+			lock:            lockfile.New(),
+			awsPath:         awsPath,
 			credentialsPath: credentialsPath,
-			lockPath: filepath.Join(os.TempDir(), "swamp.lock"),
+			lockPath:        filepath.Join(os.TempDir(), "swamp.lock"),
 		}, nil
 	}
 }

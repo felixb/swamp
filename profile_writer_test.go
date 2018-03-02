@@ -22,7 +22,7 @@ func TestProfileWriter_NewProfileWriterWithDefaults(t *testing.T) {
 	awsPath := filepath.Join(usr.HomeDir, ".aws")
 	credPath := filepath.Join(awsPath, "credentials")
 
-	assert.Equal(t, awsPath + "/", pw.awsPath)
+	assert.Equal(t, awsPath+"/", pw.awsPath)
 	assert.Equal(t, credPath, pw.credentialsPath)
 }
 

@@ -11,8 +11,8 @@ import (
 
 const (
 	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
-	TARGET_SESSION_TOKEN_DURATION = int64(60 * 60)
-	VERSION = "0.7-snapshot"
+	TARGET_SESSION_TOKEN_DURATION       = int64(60 * 60)
+	VERSION                             = "0.7-snapshot"
 )
 
 type SwampConfig struct {
@@ -33,19 +33,19 @@ type SwampConfig struct {
 
 func NewSwampConfig() *SwampConfig {
 	return &SwampConfig{
-		targetAccount: "",
-		intermediateProfile: "session-token",
+		targetAccount:        "",
+		intermediateProfile:  "session-token",
 		intermediateDuration: INTERMEDIATE_SESSION_TOKEN_DURATION,
-		targetProfile: "swamp",
-		targetRole: "",
-		targetDuration: TARGET_SESSION_TOKEN_DURATION,
-		profile: "default",
-		region: "eu-central-1",
-		tokenSerialNumber: "",
-		useInstanceProfile: false,
-		renew: false,
-		exportProfile: false,
-		exportFile: "/tmp/current_swamp_profile",
+		targetProfile:        "swamp",
+		targetRole:           "",
+		targetDuration:       TARGET_SESSION_TOKEN_DURATION,
+		profile:              "default",
+		region:               "eu-central-1",
+		tokenSerialNumber:    "",
+		useInstanceProfile:   false,
+		renew:                false,
+		exportProfile:        false,
+		exportFile:           "/tmp/current_swamp_profile",
 	}
 }
 

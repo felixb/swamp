@@ -14,7 +14,7 @@ import (
 )
 
 func die(msg string, err error) {
-	fmt.Fprintf(os.Stderr, msg + ": %v\n", err)
+	fmt.Fprintf(os.Stderr, msg+": %v\n", err)
 	os.Exit(1)
 }
 
@@ -103,7 +103,7 @@ func ensureTargetProfile(config *SwampConfig, pw *ProfileWriter, sess *session.S
 
 	userId := getCallerId(svc).Arn
 	parts := strings.Split(*userId, "/")
-	roleSessionName := parts[len(parts) - 1]
+	roleSessionName := parts[len(parts)-1]
 
 	cred := assumeRole(svc, config.GetRoleArn(), &roleSessionName, &config.targetDuration)
 	if err := pw.WriteProfile(cred, &config.targetProfile, sess.Config.Region); err != nil {
@@ -155,7 +155,7 @@ func main() {
 		} else {
 			sess = session.Must(session.NewSessionWithOptions(session.Options{
 				Config:  aws.Config{Region: &config.region},
-				Profile: *baseProfile, }))
+				Profile: *baseProfile}))
 		}
 
 		ensureTargetProfile(config, pw, sess)
@@ -167,6 +167,6 @@ func main() {
 		if !config.renew {
 			break
 		}
-		time.Sleep(time.Second * time.Duration(config.targetDuration / 2))
+		time.Sleep(time.Second * time.Duration(config.targetDuration/2))
 	}
 }
