@@ -35,6 +35,11 @@ Token is valid until: 2017-07-06 08:31:10 +0000 UTC
 Subsequent calls may skip that step as long as the session token is still valid.
 With these intermediate credentials `aws sts assume-role` is called as above.
 
+### Auto-Obtain MFA Token
+if using swamp if an mfa-enabled account you can use the `-mfa-exec` flag to tell swamp
+to try to obtain the token itself. You need to give an executable command which returns the 6-digit code.
+
+
 #### Example:
 
 ```
