@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -27,20 +28,39 @@ func getCallerId(svc *sts.STS) *sts.GetCallerIdentityOutput {
 	return output
 }
 
-func getTokenCode(tokenSerialNumber string) *string {
-	if tokenSerialNumber == "" {
-		return nil
-	}
+func cleanTokenCode(tokenCode string) string {
+	return strings.Trim(tokenCode, " \r\n")
+}
 
+func fetchTokenCode(tokenSerialNumber string, cmd string) string {
+	fmt.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
+	if output, err := exec.Command("/bin/sh", "-c", cmd).Output(); err != nil {
+		die("Error obtaining mfa token", err)
+		return ""
+	} else {
+		return string(output)
+	}
+}
+
+func askForTokenCode(tokenSerialNumber string) string {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("Enter mfa token for %s: ", tokenSerialNumber)
 	if tokenCode, err := reader.ReadString('\n'); err != nil {
 		die("Error reading mfa token", err)
-		return nil
+		return ""
 	} else {
-		tokenCode = strings.Trim(tokenCode, " \r\n")
-		return &tokenCode
+		return tokenCode
 	}
+}
+
+func getTokenCode(config *SwampConfig) string {
+	var tokenCode string
+	if config.mfaExec != "" {
+		tokenCode = fetchTokenCode(config.tokenSerialNumber, config.mfaExec)
+	} else {
+		tokenCode = askForTokenCode(config.tokenSerialNumber)
+	}
+	return cleanTokenCode(tokenCode)
 }
 
 func validateSessionToken(options session.Options) bool {
@@ -53,10 +73,11 @@ func validateSessionToken(options session.Options) bool {
 func getSessionToken(options session.Options, config *SwampConfig) *sts.Credentials {
 	sess := session.Must(session.NewSessionWithOptions(options))
 	svc := sts.New(sess)
+	tokenCode := getTokenCode(config)
 	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		DurationSeconds: &config.intermediateDuration,
 		SerialNumber:    &config.tokenSerialNumber,
-		TokenCode:       getTokenCode(config.tokenSerialNumber),
+		TokenCode:       &tokenCode,
 	})
 	if err != nil {
 		die("Error getting session token", err)
