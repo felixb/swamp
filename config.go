@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 )
@@ -46,7 +47,7 @@ func NewSwampConfig() *SwampConfig {
 		useInstanceProfile:   false,
 		renew:                false,
 		exportProfile:        false,
-		exportFile:           "/tmp/current_swamp_profile",
+		exportFile:           path.Join(os.TempDir(), "current_swamp_profile"),
 		mfaExec:              "",
 	}
 }
