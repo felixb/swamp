@@ -4,14 +4,13 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"os"
 	"os/exec"
+	"strings"
+	"time"
 )
 
 func die(msg string, err error) {
@@ -34,11 +33,11 @@ func fetchTokenCode(tokenSerialNumber string, cmd string) *string {
 	}
 
 	fmt.Printf("Obtaining mfa token for: %s \n", tokenSerialNumber)
-	if output, err := exec.Command("bash", "-c", cmd).Output(); err != nil {
+	if output, err := exec.Command("sh", "-c", cmd).Output(); err != nil {
 		die("Error obtaining mfa token", err)
 		return nil
 	} else {
-		tokenCode := string(output)
+		tokenCode := strings.Trim(string(output[0:6]), " \r\n")
 		return &tokenCode
 	}
 }
