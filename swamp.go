@@ -86,19 +86,27 @@ func getSessionToken(options session.Options, config *SwampConfig) *sts.Credenti
 	return output.Credentials
 }
 
+func getIntermediateSessionOptions(config *SwampConfig) session.Options {
+	return newSessionOptions(&config.intermediateProfile, &config.region)
+}
+
+func getBaseSessionOptions(config *SwampConfig) session.Options {
+	return newSessionOptions(&config.profile, &config.region)
+}
+
+func newSessionOptions(profile, region *string) session.Options {
+	return session.Options{
+		Config:  aws.Config{Region: region},
+		Profile: *profile}
+}
+
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
-	if validateSessionToken(session.Options{
-		Config:  aws.Config{Region: &config.region},
-		Profile: config.intermediateProfile,
-	}) {
+	if validateSessionToken(getIntermediateSessionOptions(config)) {
 		fmt.Printf("Session token for profile %s is still valid\n", config.profile)
 	} else {
-		cred := getSessionToken(session.Options{
-			Config:  aws.Config{Region: &config.region},
-			Profile: config.profile,
-		}, config)
+		cred := getSessionToken(getBaseSessionOptions(config), config)
 		if err := pw.WriteProfile(cred, &config.intermediateProfile, &config.region); err != nil {
 			die("Error writing profile", err)
 		}
@@ -171,13 +179,7 @@ func main() {
 		}
 
 		var sess *session.Session
-		if config.useInstanceProfile {
-			sess = session.Must(session.NewSession())
-		} else {
-			sess = session.Must(session.NewSessionWithOptions(session.Options{
-				Config:  aws.Config{Region: &config.region},
-				Profile: *baseProfile}))
-		}
+		sess = session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
 
 		ensureTargetProfile(config, pw, sess)
 

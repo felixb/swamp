@@ -41,8 +41,8 @@ func NewSwampConfig() *SwampConfig {
 		targetProfile:        "swamp",
 		targetRole:           "",
 		targetDuration:       TARGET_SESSION_TOKEN_DURATION,
-		profile:              "default",
-		region:               "eu-central-1",
+		profile:              "",
+		region:               "",
 		tokenSerialNumber:    "",
 		useInstanceProfile:   false,
 		renew:                false,
@@ -75,7 +75,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.StringVar(&config.profile, "profile", config.profile, "AWS CLI profile")
 	flag.StringVar(&config.region, "region", config.region, "AWS region")
 	flag.StringVar(&config.tokenSerialNumber, "mfa-device", config.tokenSerialNumber, "MFA device arn")
-	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "Use instance profile")
+	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "No-op, deprecated")
 	flag.BoolVar(&config.renew, "renew", config.renew, "renew token every duration/2")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
@@ -91,12 +91,6 @@ func (config *SwampConfig) Validate() error {
 		return err
 	}
 	if err := checkStringFlagNotEmpty("target-role", config.targetRole); err != nil {
-		return err
-	}
-	if err := checkStringFlagNotEmpty("profile", config.profile); err != nil {
-		return err
-	}
-	if err := checkStringFlagNotEmpty("region", config.region); err != nil {
 		return err
 	}
 
@@ -115,12 +109,8 @@ func (config *SwampConfig) Validate() error {
 	}
 
 	if config.useInstanceProfile {
-		if config.tokenSerialNumber != "" {
-			return errors.New("Using MFA and instance profile is mutual exclusive")
-		}
-		if config.profile != "default" {
-			return errors.New("Using a profile and instance profile is mutual exclusive")
-		}
+		fmt.Println("Option -instance is deprecated as -profile allows empty values.")
+		fmt.Println("It will be removed in future releases.")
 	}
 
 	if config.tokenSerialNumber != "" {

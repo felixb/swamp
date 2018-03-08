@@ -114,9 +114,6 @@ func (pw *ProfileWriter) getOrCreateSection(cfg *ini.File, profileName *string) 
 }
 
 func (pw *ProfileWriter) writeSection(sec *ini.Section, cred *sts.Credentials, region *string) error {
-	if err := pw.writeKey(sec, "region", region); err != nil {
-		return err
-	}
 	if err := pw.writeKey(sec, "aws_access_key_id", cred.AccessKeyId); err != nil {
 		return err
 	}
@@ -125,6 +122,11 @@ func (pw *ProfileWriter) writeSection(sec *ini.Section, cred *sts.Credentials, r
 	}
 	if err := pw.writeKey(sec, "aws_session_token", cred.SessionToken); err != nil {
 		return err
+	}
+	if region != nil && *region != "" {
+		if err := pw.writeKey(sec, "region", region); err != nil {
+			return err
+		}
 	}
 	return nil
 }

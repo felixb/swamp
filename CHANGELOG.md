@@ -2,10 +2,13 @@
 
 ## swamp v0.7-snapshot
 
+* `-mfa-exec` allows to automatically obtain the mfa-device token
+* `-target-profile` defaults to `swamp`
+* `-profile` defaults to ``
+* `-region` defaults to ``
+* `-instance` is deprecated and replaced by no-op
 * obey environment variable `AWS_SHARED_CREDENTIALS_FILE`
 * hide flags `-export-profile` and `-export-file` on windows
-* `-target-profile` defaults to `swamp`
-* add option to automatically obtain the mfa-device token
 
 ## swamp v0.6
 
