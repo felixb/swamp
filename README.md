@@ -35,11 +35,6 @@ Token is valid until: 2017-07-06 08:31:10 +0000 UTC
 Subsequent calls may skip that step as long as the session token is still valid.
 With these intermediate credentials `aws sts assume-role` is called as above.
 
-### Auto-Obtain MFA Token
-if using swamp if an mfa-enabled account you can use the `-mfa-exec` flag to tell swamp
-to try to obtain the token itself. You need to give an executable command which returns the 6-digit code.
-
-
 #### Example:
 
 ```
@@ -58,6 +53,27 @@ $ swamp -target-profile target -target-role admin -account [target-account-id] -
 Session token for profile session-token is still valid
 Wrote session token for profile target
 Token is valid until: 2017-07-06 08:32:15 +0000 UTC
+```
+
+### Auto-Obtain MFA Token
+
+If using swamp with an mfa-enabled account you can use the `-mfa-exec` flag to tell swamp to try to obtain the token itself.
+You need to give an executable command which returns the 6-digit code.
+
+swamp is known to integrate well with the following tools:
+
+* [pass](https://www.passwordstore.org/) / [pass-otp](https://github.com/tadfisher/pass-otp): `-mfa-exec "pass otp amazonaws.com"`
+* [ykman](https://developers.yubico.com/yubikey-manager/): `-mfa-exec "ykman oath code amazonaws.com | awk '{ print $NF }'"`
+
+#### Example:
+
+```
+$ swamp -target-profile target -target-role admin -account [target-account-id] -mfa-device arn:aws:iam::[origin-account-id]:mfa/[userid] -mfa-exec "pass otp amazonaws.com"
+Obtaining mfa token for: arn:aws:iam::[origin-account-id]:mfa/[userid]
+Wrote session token for profile session-token
+Token is valid until: 2017-07-06 20:32:09 +0000 UTC
+Wrote session token for profile target
+Token is valid until: 2017-07-06 08:31:10 +0000 UTC
 ```
 
 ### Renew
