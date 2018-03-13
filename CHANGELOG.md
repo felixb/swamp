@@ -1,6 +1,6 @@
 # Changelog
 
-## swamp v0.7-snapshot
+## swamp v0.7
 
 * `-mfa-exec` allows to automatically obtain the mfa-device token
 * `-target-profile` defaults to `swamp`
