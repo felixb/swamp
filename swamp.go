@@ -147,7 +147,31 @@ func writeProfileToFile(config *SwampConfig) {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "export AWS_PROFILE=%s\nunset AWS_ACCESS_KEY_ID\nunset AWS_SECRET_ACCESS_KEY\n", config.targetProfile)
+	fmt.Fprintf(file, "export AWS_PROFILE=%s\nunset AWS_ACCESS_KEY_ID\nunset AWS_SECRET_ACCESS_KEY\nunset AWS_SESSION_TOKEN\n", config.targetProfile)
+}
+
+func cleanCredentialsFromEnv(env []string) []string {
+	ret := env
+
+	for _, key := range [...]string{"AWS_ACCESS_KEY_ID=", "AWS_SECRET_ACCESS_KEY=", "AWS_SESSION_TOKEN="} {
+		for i, e := range ret {
+			if strings.HasPrefix(e, key) {
+				ret = append(ret[:i], ret[i+1:]...)
+				break
+			}
+		}
+	}
+
+	return ret
+}
+
+func execCommand(config *SwampConfig) error {
+	c := exec.Command("/bin/sh", "-c", config.exec)
+	c.Env = append(cleanCredentialsFromEnv(os.Environ()), fmt.Sprintf("AWS_PROFILE=%s", config.targetProfile))
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	return c.Run()
 }
 
 func main() {
@@ -185,6 +209,14 @@ func main() {
 
 		if config.exportProfile {
 			writeProfileToFile(config)
+		}
+
+		if config.exec != "" {
+			if err := execCommand(config); err != nil {
+				die(fmt.Sprintf("Error running command '%s' with AWS profile '%s'", config.exec, config.targetProfile), err)
+			} else {
+				fmt.Printf("Executed '%s' sucessfully\n", config.exec)
+			}
 		}
 
 		if !config.renew {

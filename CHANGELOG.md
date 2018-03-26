@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.8-snapshot
+
+* `-exec` allows executing command with the targed role assumed
+
 ## swamp v0.7
 
 * `-mfa-exec` allows to automatically obtain the mfa-device token

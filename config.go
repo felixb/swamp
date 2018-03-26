@@ -13,7 +13,7 @@ import (
 const (
 	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
 	TARGET_SESSION_TOKEN_DURATION       = int64(60 * 60)
-	VERSION                             = "0.7"
+	VERSION                             = "0.8-snapshot"
 )
 
 type SwampConfig struct {
@@ -28,6 +28,7 @@ type SwampConfig struct {
 	tokenSerialNumber    string
 	useInstanceProfile   bool
 	renew                bool
+	exec                 string
 	exportProfile        bool
 	exportFile           string
 	mfaExec              string
@@ -46,6 +47,7 @@ func NewSwampConfig() *SwampConfig {
 		tokenSerialNumber:    "",
 		useInstanceProfile:   false,
 		renew:                false,
+		exec:                 "",
 		exportProfile:        false,
 		exportFile:           path.Join(os.TempDir(), "current_swamp_profile"),
 		mfaExec:              "",
@@ -79,6 +81,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.BoolVar(&config.renew, "renew", config.renew, "renew token every duration/2")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
+		flag.StringVar(&config.exec, "exec", config.exec, "Execute this commend with AWS_PROFILE set to target protile")
 		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "set AWS_PROFILE in environment")
 		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to")
 		flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "executable command for obtaining mfa-device token")
