@@ -70,8 +70,7 @@ func validateSessionToken(options session.Options) bool {
 	return err == nil
 }
 
-func getSessionToken(options session.Options, config *SwampConfig) *sts.Credentials {
-	sess := session.Must(session.NewSessionWithOptions(options))
+func getSessionToken(sess *session.Session, config *SwampConfig) *sts.Credentials {
 	svc := sts.New(sess)
 	tokenCode := getTokenCode(config)
 	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
@@ -106,8 +105,9 @@ func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
 	if validateSessionToken(getIntermediateSessionOptions(config)) {
 		fmt.Printf("Session token for profile %s is still valid\n", config.profile)
 	} else {
-		cred := getSessionToken(getBaseSessionOptions(config), config)
-		if err := pw.WriteProfile(cred, &config.intermediateProfile, &config.region); err != nil {
+		sess := session.Must(session.NewSessionWithOptions(getBaseSessionOptions(config)))
+		cred := getSessionToken(sess, config)
+		if err := pw.WriteProfile(cred, &config.intermediateProfile, sess.Config.Region); err != nil {
 			die("Error writing profile", err)
 		}
 	}
@@ -202,9 +202,7 @@ func main() {
 			ensureSessionTokenProfile(config, pw)
 		}
 
-		var sess *session.Session
-		sess = session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
-
+		sess := session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
 		ensureTargetProfile(config, pw, sess)
 
 		if config.exportProfile {
