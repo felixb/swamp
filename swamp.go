@@ -103,7 +103,7 @@ func newSessionOptions(profile, region *string) session.Options {
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
 	if validateSessionToken(getIntermediateSessionOptions(config)) {
-		fmt.Printf("Session token for profile %s is still valid\n", config.profile)
+		fmt.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
 	} else {
 		sess := session.Must(session.NewSessionWithOptions(getBaseSessionOptions(config)))
 		cred := getSessionToken(sess, config)
