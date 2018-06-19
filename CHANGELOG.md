@@ -1,8 +1,9 @@
 # Changelog
 
-## swamp v0.8-snapshot
+## swamp v0.8
 
-* `-exec` allows executing command with the targed role assumed
+* `-exec` allows executing command with the target role assumed
+* write current default region to all profiles
 
 ## swamp v0.7
 
