@@ -15,7 +15,17 @@ import (
 )
 
 func die(msg string, err error) {
-	fmt.Fprintf(os.Stderr, msg+": %v\n", err)
+	dieSlow(msg, "", err)
+}
+
+func dieSlow(msg, longMsg string, err error) {
+	fmt.Fprintln(os.Stderr, msg+":")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, err)
+	if longMsg != "" {
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, longMsg)
+	}
 	os.Exit(1)
 }
 
@@ -70,6 +80,19 @@ func validateSessionToken(options session.Options) bool {
 	return err == nil
 }
 
+func guessCurrentProfile(config *SwampConfig) string {
+	if config.profile != "" {
+		return config.profile
+	}
+
+	profileFromEnv := os.Getenv("AWS_PROFILE")
+	if profileFromEnv != "" {
+		return profileFromEnv
+	}
+
+	return "default"
+}
+
 func getSessionToken(sess *session.Session, config *SwampConfig) *sts.Credentials {
 	svc := sts.New(sess)
 	tokenCode := getTokenCode(config)
@@ -79,7 +102,7 @@ func getSessionToken(sess *session.Session, config *SwampConfig) *sts.Credential
 		TokenCode:       &tokenCode,
 	})
 	if err != nil {
-		die("Error getting session token", err)
+		dieSlow("Error getting session token", fmt.Sprintf(`Make sure your current profile %s is valid and allows running "aws sts get-session-token".`, guessCurrentProfile(config)), err)
 	}
 
 	return output.Credentials
@@ -102,6 +125,7 @@ func newSessionOptions(profile, region *string) session.Options {
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
+	fmt.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
 	if validateSessionToken(getIntermediateSessionOptions(config)) {
 		fmt.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
 	} else {
@@ -120,7 +144,7 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 		DurationSeconds: duration,
 	})
 	if err != nil {
-		die("Error assuming role", err)
+		dieSlow("Error assuming role", fmt.Sprintf(`Make sure your current profile is valid and allows running "aws sts assume-role --role-arn %s"`, *roleArn), err)
 	}
 
 	return output.Credentials
@@ -211,9 +235,9 @@ func main() {
 
 		if config.exec != "" {
 			if err := execCommand(config); err != nil {
-				die(fmt.Sprintf("Error running command '%s' with AWS profile '%s'", config.exec, config.targetProfile), err)
+				die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
 			} else {
-				fmt.Printf("Executed '%s' sucessfully\n", config.exec)
+				fmt.Printf(`Executed "%s" sucessfully\n`, config.exec)
 			}
 		}
 
