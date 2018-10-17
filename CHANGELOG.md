@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.8.1
+
+* add details to error messages
+
 ## swamp v0.8
 
 * `-exec` allows executing command with the target role assumed
