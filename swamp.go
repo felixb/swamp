@@ -237,7 +237,7 @@ func main() {
 			if err := execCommand(config); err != nil {
 				die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
 			} else {
-				fmt.Printf(`Executed "%s" sucessfully\n`, config.exec)
+				fmt.Printf("Executed \"%s\" sucessfully\n", config.exec)
 			}
 		}
 
