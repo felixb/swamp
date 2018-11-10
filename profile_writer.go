@@ -70,8 +70,8 @@ func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region
 		}
 	}
 
-	fmt.Printf("Wrote session token for profile %s\n", *profileName)
-	fmt.Printf("Token is valid until: %v\n", cred.Expiration)
+	printer.Printf("Wrote session token for profile %s\n", *profileName)
+	printer.Printf("Token is valid until: %v\n", cred.Expiration)
 
 	return nil
 }

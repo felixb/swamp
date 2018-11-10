@@ -64,3 +64,11 @@ func TestSwampConfig_GetRoleArnWithAccountAndRole(t *testing.T) {
 	arn := c.GetRoleArn()
 	assert.Equal(t, *arn, "arn:aws:iam::1234567890:role/some-role")
 }
+
+func TestSwampConfig_DefaultQuietIsFalse(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetRole = "some-role"
+	c.targetAccount = "1234567890"
+
+	assert.Equal(t, false, c.quiet)
+}

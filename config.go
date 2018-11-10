@@ -32,6 +32,7 @@ type SwampConfig struct {
 	exportProfile        bool
 	exportFile           string
 	mfaExec              string
+	quiet                bool
 }
 
 func NewSwampConfig() *SwampConfig {
@@ -51,6 +52,7 @@ func NewSwampConfig() *SwampConfig {
 		exportProfile:        false,
 		exportFile:           path.Join(os.TempDir(), "current_swamp_profile"),
 		mfaExec:              "",
+		quiet:                false,
 	}
 }
 
@@ -79,6 +81,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.StringVar(&config.tokenSerialNumber, "mfa-device", config.tokenSerialNumber, "MFA device arn")
 	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "No-op, deprecated")
 	flag.BoolVar(&config.renew, "renew", config.renew, "renew token every duration/2")
+	flag.BoolVar(&config.quiet, "quiet", config.quiet, "Suppress output")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.StringVar(&config.exec, "exec", config.exec, "Execute this commend with AWS_PROFILE set to target protile")

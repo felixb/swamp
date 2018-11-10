@@ -43,7 +43,7 @@ func cleanTokenCode(tokenCode string) string {
 }
 
 func fetchTokenCode(tokenSerialNumber string, cmd string) string {
-	fmt.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
+	printer.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
 	if output, err := exec.Command("/bin/sh", "-c", cmd).Output(); err != nil {
 		die("Error obtaining mfa token", err)
 		return ""
@@ -125,9 +125,9 @@ func newSessionOptions(profile, region *string) session.Options {
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
-	fmt.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
+	printer.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
 	if validateSessionToken(getIntermediateSessionOptions(config)) {
-		fmt.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
+		printer.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
 	} else {
 		sess := session.Must(session.NewSessionWithOptions(getBaseSessionOptions(config)))
 		cred := getSessionToken(sess, config)
@@ -204,6 +204,11 @@ func main() {
 	config.SetupFlags()
 	flag.Parse()
 
+	// setup logging
+	if config.quiet {
+		printer.SetOff(true)
+	}
+
 	// check user input on command line flags
 	if err := config.Validate(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -237,7 +242,7 @@ func main() {
 			if err := execCommand(config); err != nil {
 				die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
 			} else {
-				fmt.Printf("Executed \"%s\" sucessfully\n", config.exec)
+				printer.Printf("Executed \"%s\" sucessfully\n", config.exec)
 			}
 		}
 
