@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func TestSwamp_ExecutingMFACommand(t *testing.T) {
-	tokenCode := fetchTokenCode("some-device-id", "echo 1234")
+	tokenCode := fetchTokenCode("some-device-id", "echo 1234", false)
 
 	assert.EqualValues(t, "1234\n", tokenCode)
 }
@@ -53,4 +54,18 @@ func TestSwamp_ExecCommand_ExitCode_EnvironmentHasNotAwsCredentials(t *testing.T
 	err := execCommand(config)
 
 	assert.NoError(t, err)
+}
+
+func TestSwamp_ExecutingMFACommandIsQuiet(t *testing.T) {
+	rescueStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	tokenCode := fetchTokenCode("some-device-id", "echo 1234", true)
+	assert.EqualValues(t, "1234\n", tokenCode)
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = rescueStdout
+	assert.Equal(t, []byte{}, out)
 }

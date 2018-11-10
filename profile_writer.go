@@ -47,7 +47,7 @@ func getCredentialsPath() (string, error) {
 	}
 }
 
-func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region *string) error {
+func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region *string, quiet bool) error {
 	pw.acquire_lock()
 	defer pw.release_lock()
 
@@ -66,10 +66,10 @@ func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region
 			}
 		}
 	}
-
-	fmt.Printf("Wrote session token for profile %s\n", *profileName)
-	fmt.Printf("Token is valid until: %v\n", cred.Expiration)
-
+	if !quiet {
+		fmt.Printf("Wrote session token for profile %s\n", *profileName)
+		fmt.Printf("Token is valid until: %v\n", cred.Expiration)
+	}
 	return nil
 }
 
