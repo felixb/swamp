@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.8.3
+
+* more explicit error messages for windows users
+
 ## swamp v0.8.2
 
 * fix string escaping

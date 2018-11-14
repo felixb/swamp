@@ -25,6 +25,9 @@ func NewProfileWriter() (*ProfileWriter, error) {
 		return nil, err
 	} else {
 		awsPath, _ := path.Split(credentialsPath)
+		if awsPath == "" {
+			return nil, fmt.Errorf("Error generating path for credentials file")
+		}
 		return &ProfileWriter{
 			lock:            lockfile.New(),
 			awsPath:         awsPath,
@@ -37,11 +40,11 @@ func NewProfileWriter() (*ProfileWriter, error) {
 func getCredentialsPath() (string, error) {
 	credentialsPath := os.Getenv("AWS_SHARED_CREDENTIALS_FILE")
 	if credentialsPath == "" {
-		usr, err := user.Current()
-		if err != nil {
+		if usr, err := user.Current(); err != nil {
 			return "", fmt.Errorf("Error fetching home dir: %s", err)
+		} else {
+			return filepath.Join(usr.HomeDir, ".aws", "credentials"), nil
 		}
-		return filepath.Join(filepath.Join(usr.HomeDir, ".aws"), "credentials"), nil
 	} else {
 		return credentialsPath, nil
 	}
