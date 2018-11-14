@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
@@ -42,10 +44,8 @@ func cleanTokenCode(tokenCode string) string {
 	return strings.Trim(tokenCode, " \r\n")
 }
 
-func fetchTokenCode(tokenSerialNumber string, cmd string, quiet bool) string {
-	if !quiet {
-		fmt.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
-	}
+func fetchTokenCode(tokenSerialNumber string, cmd string) string {
+	log.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
 	if output, err := exec.Command("/bin/sh", "-c", cmd).Output(); err != nil {
 		die("Error obtaining mfa token", err)
 		return ""
@@ -68,7 +68,7 @@ func askForTokenCode(tokenSerialNumber string) string {
 func getTokenCode(config *SwampConfig) string {
 	var tokenCode string
 	if config.mfaExec != "" {
-		tokenCode = fetchTokenCode(config.tokenSerialNumber, config.mfaExec, config.quiet)
+		tokenCode = fetchTokenCode(config.tokenSerialNumber, config.mfaExec)
 	} else {
 		tokenCode = askForTokenCode(config.tokenSerialNumber)
 	}
@@ -127,17 +127,13 @@ func newSessionOptions(profile, region *string) session.Options {
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
-	if !config.quiet {
-		fmt.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
-	}
+	log.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
 	if validateSessionToken(getIntermediateSessionOptions(config)) {
-		if !config.quiet {
-			fmt.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
-		}
+		log.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
 	} else {
 		sess := session.Must(session.NewSessionWithOptions(getBaseSessionOptions(config)))
 		cred := getSessionToken(sess, config)
-		if err := pw.WriteProfile(cred, &config.intermediateProfile, sess.Config.Region, config.quiet); err != nil {
+		if err := pw.WriteProfile(cred, &config.intermediateProfile, sess.Config.Region); err != nil {
 			die("Error writing profile", err)
 		}
 	}
@@ -165,7 +161,7 @@ func ensureTargetProfile(config *SwampConfig, pw *ProfileWriter, sess *session.S
 	roleSessionName := parts[len(parts)-1]
 
 	cred := assumeRole(svc, config.GetRoleArn(), &roleSessionName, &config.targetDuration)
-	if err := pw.WriteProfile(cred, &config.targetProfile, sess.Config.Region, config.quiet); err != nil {
+	if err := pw.WriteProfile(cred, &config.targetProfile, sess.Config.Region); err != nil {
 		die("Error writing profile", err)
 	}
 }
@@ -210,6 +206,16 @@ func main() {
 	config.SetupFlags()
 	flag.Parse()
 
+	// setup logging
+	log.SetOutput(os.Stdout)
+	customFormatter := new(log.TextFormatter)
+	customFormatter.DisableTimestamp = true
+	customFormatter.DisableLevelTruncation = true
+	log.SetFormatter(customFormatter)
+	if config.quiet {
+		log.SetLevel(1)
+	}
+
 	// check user input on command line flags
 	if err := config.Validate(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -243,9 +249,7 @@ func main() {
 			if err := execCommand(config); err != nil {
 				die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
 			} else {
-				if !config.quiet {
-					fmt.Printf("Executed \"%s\" sucessfully\n", config.exec)
-				}
+				log.Printf("Executed \"%s\" sucessfully\n", config.exec)
 			}
 		}
 

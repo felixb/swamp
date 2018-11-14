@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/go-ini/ini"
 	"github.com/golang-utils/lockfile"
@@ -47,7 +49,7 @@ func getCredentialsPath() (string, error) {
 	}
 }
 
-func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region *string, quiet bool) error {
+func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region *string) error {
 	pw.acquire_lock()
 	defer pw.release_lock()
 
@@ -66,10 +68,10 @@ func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region
 			}
 		}
 	}
-	if !quiet {
-		fmt.Printf("Wrote session token for profile %s\n", *profileName)
-		fmt.Printf("Token is valid until: %v\n", cred.Expiration)
-	}
+
+	log.Printf("Wrote session token for profile %s\n", *profileName)
+	log.Printf("Token is valid until: %v\n", cred.Expiration)
+
 	return nil
 }
 

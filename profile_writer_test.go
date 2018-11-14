@@ -54,10 +54,9 @@ func TestProfileWriter_WriteProfile(t *testing.T) {
 	creds.SetAccessKeyId("some-access-key")
 	creds.SetSecretAccessKey("some-secret-access-key")
 	creds.SetSessionToken("some-session-token")
-	quiet := false
 
 	pw, _ := NewProfileWriter()
-	pw.WriteProfile(creds, &profileName, &region, quiet)
+	pw.WriteProfile(creds, &profileName, &region)
 
 	b, err := ioutil.ReadFile(credPath)
 	assert.NoError(t, err)
@@ -85,10 +84,9 @@ func TestProfileWriter_WriteProfileWoRegion(t *testing.T) {
 	creds.SetAccessKeyId("some-access-key")
 	creds.SetSecretAccessKey("some-secret-access-key")
 	creds.SetSessionToken("some-session-token")
-	quiet := true
 
 	pw, _ := NewProfileWriter()
-	pw.WriteProfile(creds, &profileName, &region, quiet)
+	pw.WriteProfile(creds, &profileName, &region)
 
 	b, err := ioutil.ReadFile(credPath)
 	assert.NoError(t, err)
@@ -102,40 +100,6 @@ func TestProfileWriter_WriteProfileWoRegion(t *testing.T) {
 	assertKeyValue(t, "aws_session_token", "some-session-token", content)
 }
 
-func TestProfileWriter_NothingGoesToStdout(t *testing.T) {
-	credPath := path.Join(os.TempDir(), "swamp-test.ini")
-	os.Remove(credPath)
-	os.OpenFile(credPath, os.O_RDONLY|os.O_CREATE, 0666)
-
-	os.Setenv("AWS_SHARED_CREDENTIALS_FILE", credPath)
-	defer os.Clearenv()
-	defer os.Remove(credPath)
-
-	profileName := "some-profile"
-	region := "some-region"
-	creds := &sts.Credentials{}
-	creds.SetAccessKeyId("some-access-key")
-	creds.SetSecretAccessKey("some-secret-access-key")
-	creds.SetSessionToken("some-session-token")
-	quiet := true
-	pw, _ := NewProfileWriter()
-
-	rescueStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	pw.WriteProfile(creds, &profileName, &region, quiet)
-
-	w.Close()
-	out, _ := ioutil.ReadAll(r)
-	os.Stdout = rescueStdout
-	assert.Equal(t, []byte{}, out)
-
-	_, err := ioutil.ReadFile(credPath)
-	assert.NoError(t, err)
-}
-
 func assertKeyValue(t *testing.T, key, value, content string) {
 	assert.Regexp(t, fmt.Sprintf(`\n%s\s*=\s*%s\n.*`, key, value), content)
 }
-
