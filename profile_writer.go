@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/go-ini/ini"
 	"github.com/golang-utils/lockfile"
@@ -69,8 +67,8 @@ func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region
 		}
 	}
 
-	log.Printf("Wrote session token for profile %s\n", *profileName)
-	log.Printf("Token is valid until: %v\n", cred.Expiration)
+	printer.Printf("Wrote session token for profile %s\n", *profileName)
+	printer.Printf("Token is valid until: %v\n", cred.Expiration)
 
 	return nil
 }

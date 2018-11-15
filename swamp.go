@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
@@ -45,7 +43,7 @@ func cleanTokenCode(tokenCode string) string {
 }
 
 func fetchTokenCode(tokenSerialNumber string, cmd string) string {
-	log.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
+	printer.Printf("Obtaining mfa token for: %s\n", tokenSerialNumber)
 	if output, err := exec.Command("/bin/sh", "-c", cmd).Output(); err != nil {
 		die("Error obtaining mfa token", err)
 		return ""
@@ -127,9 +125,9 @@ func newSessionOptions(profile, region *string) session.Options {
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
 func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
-	log.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
+	printer.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
 	if validateSessionToken(getIntermediateSessionOptions(config)) {
-		log.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
+		printer.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
 	} else {
 		sess := session.Must(session.NewSessionWithOptions(getBaseSessionOptions(config)))
 		cred := getSessionToken(sess, config)
@@ -207,13 +205,8 @@ func main() {
 	flag.Parse()
 
 	// setup logging
-	log.SetOutput(os.Stdout)
-	customFormatter := new(log.TextFormatter)
-	customFormatter.DisableTimestamp = true
-	customFormatter.DisableLevelTruncation = true
-	log.SetFormatter(customFormatter)
 	if config.quiet {
-		log.SetLevel(1)
+		printer.SetOff(true)
 	}
 
 	// check user input on command line flags
@@ -249,7 +242,7 @@ func main() {
 			if err := execCommand(config); err != nil {
 				die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
 			} else {
-				log.Printf("Executed \"%s\" sucessfully\n", config.exec)
+				printer.Printf("Executed \"%s\" sucessfully\n", config.exec)
 			}
 		}
 
