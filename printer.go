@@ -65,25 +65,3 @@ func (p *Printer) SetOff(off bool) {
 	defer p.mu.Unlock()
 	p.off = off
 }
-
-// The following functions use the standard printer.
-
-// SetOutput sets the output destination for the standard printer.
-func SetOutput(w io.Writer) { printer.SetOutput(w) }
-
-// Printf prints to the standard printer.
-// Arguments are handled in the manner of fmt.Printf. A newline is
-// appended if the last character of s is not already a newline.
-func Printf(format string, v ...interface{}) { printer.Printf(format, v...) }
-
-// Println prints to the standard printer.
-// Arguments are handled in the manner of fmt.Println. A newline is
-// appended if the last character of s is not already a newline.
-func Println(v ...interface{}) { printer.Println(v...) }
-
-// Output writes the output to the standard printer. A newline is
-// appended if the last character of s is not already a newline.
-func Output(s string) error { return printer.Output(s) }
-
-// Set quiet mode to the standard printer.
-func SetOff(off bool) { printer.SetOff(off) }
