@@ -1,6 +1,6 @@
 # Changelog
 
-## swamp v0.8.3
+## swamp v0.9
 
 * `-quiet` suppresses output
 * more explicit error messages for windows users
