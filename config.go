@@ -80,14 +80,14 @@ func (config *SwampConfig) SetupFlags() {
 	flag.StringVar(&config.region, "region", config.region, "AWS region")
 	flag.StringVar(&config.tokenSerialNumber, "mfa-device", config.tokenSerialNumber, "MFA device arn")
 	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "No-op, deprecated")
-	flag.BoolVar(&config.renew, "renew", config.renew, "renew token every duration/2")
+	flag.BoolVar(&config.renew, "renew", config.renew, "Renew token every duration/2")
 	flag.BoolVar(&config.quiet, "quiet", config.quiet, "Suppress output")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.StringVar(&config.exec, "exec", config.exec, "Execute this commend with AWS_PROFILE set to target protile")
-		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "set AWS_PROFILE in environment")
+		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "Set AWS_PROFILE in environment")
 		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to")
-		flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "executable command for obtaining mfa-device token")
+		flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "Executable command for obtaining mfa-device token")
 	}
 	flag.Usage = flagUsage
 }
