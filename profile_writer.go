@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/user"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -24,7 +23,7 @@ func NewProfileWriter() (*ProfileWriter, error) {
 	if credentialsPath, err := getCredentialsPath(); err != nil {
 		return nil, err
 	} else {
-		awsPath, _ := path.Split(credentialsPath)
+		awsPath, _ := filepath.Split(credentialsPath)
 		if awsPath == "" {
 			return nil, fmt.Errorf("Error generating path for credentials file")
 		}
