@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.9.1
+
+* fix finding aws credentials on windows
+
 ## swamp v0.9
 
 * `-quiet` suppresses output
