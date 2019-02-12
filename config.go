@@ -17,6 +17,7 @@ const (
 )
 
 type SwampConfig struct {
+	aliasConfig          string
 	targetAccount        string
 	intermediateProfile  string
 	intermediateDuration int64
@@ -37,6 +38,7 @@ type SwampConfig struct {
 
 func NewSwampConfig() *SwampConfig {
 	return &SwampConfig{
+		aliasConfig:          "",
 		targetAccount:        "",
 		intermediateProfile:  "session-token",
 		intermediateDuration: INTERMEDIATE_SESSION_TOKEN_DURATION,
@@ -84,6 +86,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.BoolVar(&config.quiet, "quiet", config.quiet, "Suppress output")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
+		flag.StringVar(&config.aliasConfig, "alias-config", config.aliasConfig, "Generate aliases from yaml `file`")
 		flag.StringVar(&config.exec, "exec", config.exec, "Execute this commend with AWS_PROFILE set to target protile")
 		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "Set AWS_PROFILE in environment")
 		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to")
@@ -92,7 +95,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.Usage = flagUsage
 }
 
-func (config *SwampConfig) Validate() error {
+func (config *SwampConfig) validateDefaultFlags() error {
 	if err := checkStringFlagNotEmpty("target-profile", config.targetProfile); err != nil {
 		return err
 	}
@@ -138,6 +141,21 @@ func (config *SwampConfig) Validate() error {
 	}
 
 	return nil
+}
+
+func (config *SwampConfig) validateAliasFlags() error {
+	if _, err := os.Stat(config.aliasConfig); os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
+func (config *SwampConfig) Validate() error {
+	if config.aliasConfig == "" {
+		return config.validateDefaultFlags()
+	} else {
+		return config.validateAliasFlags()
+	}
 }
 
 func checkStringFlagNotEmpty(name string, f string) error {

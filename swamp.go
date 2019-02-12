@@ -215,12 +215,20 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	baseProfile := &config.profile
+	if config.aliasConfig == "" {
+		assume(config)
+	} else {
+		if err := generateAliases(os.Stdout, config.aliasConfig); err != nil {
+			die("Error generating alias config", err)
+		}
+	}
+}
 
+func assume(config *SwampConfig) {
+	baseProfile := &config.profile
 	if config.tokenSerialNumber != "" {
 		baseProfile = &config.intermediateProfile
 	}
-
 	pw, err := NewProfileWriter()
 	if err != nil {
 		die("Error initializing profile writer", err)

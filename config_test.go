@@ -30,6 +30,15 @@ func TestSwampConfig_ValidateRoleAndAccount(t *testing.T) {
 	assert.Error(t, c.Validate())
 }
 
+func TestSwampConfig_NotDefaults(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetAccount = "1234567890"
+	c.targetRole = "arn:aws:iam::1234567890:role/some-role"
+	c.aliasConfig = "CHANGELOG.md"
+
+	assert.NoError(t, c.Validate())
+}
+
 func TestSwampConfig_ValidateMFADeviceAndTokenCommand(t *testing.T) {
 	c := NewSwampConfig()
 	c.targetRole = "arn:aws:iam::1234567890:role/some-role"
@@ -71,4 +80,17 @@ func TestSwampConfig_DefaultQuietIsFalse(t *testing.T) {
 	c.targetAccount = "1234567890"
 
 	assert.Equal(t, false, c.quiet)
+}
+
+func TestSwampConfig_Aliases(t *testing.T) {
+	c := NewSwampConfig()
+	c.aliasConfig = "does-not-exists"
+
+	assert.Error(t, c.Validate())
+}
+func TestSwampConfig_AliasesMissing(t *testing.T) {
+	c := NewSwampConfig()
+	c.aliasConfig = "CHANGELOG.md"
+
+	assert.NoError(t, c.Validate())
 }

@@ -1,0 +1,68 @@
+---
+allArgs: >-
+  -region eu-central-1
+allExecs:
+  bash: bash
+  info: aws sts get-caller-identity --output json
+  tf-init: cd '${1}' && terraform init
+defaultAdditionalArgs: >-
+  -profile default
+  -mfa-device arn:aws:iam::AAAAAAAAA:mfa/BBBBBBBB
+  -mfa-exec 'pass otp aws.amazon.com/default'
+teams:
+- name: team1
+  accounts:
+    - accountId: 'XXXXXXXXX1'
+      name: nonlive
+      roles:
+        - readonly
+        - developer
+        - admin
+    - accountId: 'YYYYYYYYY1'
+      name: live
+      roles:
+        - readonly
+        - developer
+    - accountId: 'ZZZZZZZZZ1'
+      name: infrastructure
+      roles:
+        - readonly
+        - developer
+- name: team2
+  accounts:
+    - accountId: 'XXXXXXXXX2'
+      name: nonlive
+      roles:
+        - admin
+    - accountId: 'YYYYYYYYY2'
+      name: live
+      roles:
+        - readonly
+    - accountId: 'ZZZZZZZZZ2'
+      name: infrastructure
+      roles:
+        - readonly
+- name: team3
+  additionalArgs: >-
+    -profile team3
+    -intermediate-profile team3-session
+    -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB
+    -mfa-exec 'pass otp aws.amazon.com/team3'
+  accounts:
+  - accountId: 'XXXXXXXXXXX3'
+    name: nonlive
+    roles:
+    - developer
+    - admin
+    execs:
+      build: ./ci/build.sh
+      deploy: ./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}
+      tf-plan: cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan
+  - accountId: 'ZZZZZZZZZZZ3'
+    name: live
+    roles:
+    - developer
+    - admin
+    execs:
+      deploy: ./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}
+      tf-plan: cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan

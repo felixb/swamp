@@ -111,6 +111,15 @@ When setting `export-file` yourself:
 $ swamp -target-profile target -target-role admin -account [target-account-id] -mfa-device arn:aws:iam::[origin-account-id]:mfa/[userid] -export-profile -export-file [/path/to/file] && source [/path/to/file]
 ```
 
+### Generating shell aliases
+`swamp` has a lot of command line options. It is strongly recommended to create some kind of aliases for running swamp more easily.
+`swamp -alias-config <config.yaml>` does exactly that:
+```
+swamp -alias-config example/config.yaml >> ~/.bashrc
+```
+The output `example/bash_aliases.sh` file is generated from the example config `example/config.yaml`.
+
+
 ## Install
 
 Fetch the latest binary from https://github.com/felixb/swamp/releases or run `make` to compile it yourself.
