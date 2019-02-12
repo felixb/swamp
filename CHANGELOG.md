@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.10.0
+
+* `-alias-config` generates shell aliases
+
 ## swamp v0.9.1
 
 * fix finding aws credentials on windows
