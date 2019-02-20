@@ -43,11 +43,13 @@ type templateVars struct {
 const (
 	aliasTemplate = `
 function swamp-{{.AliasName}}() {
-  SWAMP_TARGET_PROFILE='{{.ProfileName}}' \
-    SWAMP_ACCOUNT='{{.AccountId}}' \
-    SWAMP_ACCOUNT_NAME='{{.AccountName}}' \
-    SWAMP_TARGET_ROLE='{{.Role}}' \
-    swamp {{.Args}}
+  SWAMP_TARGET_PROFILE='{{.ProfileName}}'
+  SWAMP_ACCOUNT='{{.AccountId}}'
+  SWAMP_ACCOUNT_NAME='{{.AccountName}}'
+  SWAMP_TARGET_ROLE='{{.Role}}'
+  swamp {{.Args}}
+
+  export AWS_PROFILE={{.ProfileName}}
 }
 `
 )
