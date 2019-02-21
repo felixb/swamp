@@ -218,7 +218,7 @@ func main() {
 	if config.aliasConfig == "" {
 		assume(config)
 	} else {
-		if err := generateAliases(os.Stdout, config.aliasConfig); err != nil {
+		if err := generateAliases(os.Stdout, config.aliasConfig, config.extendSwitchRoles); err != nil {
 			die("Error generating alias config", err)
 		}
 	}

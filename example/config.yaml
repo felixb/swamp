@@ -11,38 +11,47 @@ defaultAdditionalArgs: >-
   -mfa-exec 'pass otp aws.amazon.com/default'
 teams:
 - name: team1
+  switchRoleAccount: 'XXXXXXXXX1'
   accounts:
     - accountId: 'XXXXXXXXX1'
+      color: '28c732'
       name: nonlive
       roles:
         - readonly
         - developer
         - admin
     - accountId: 'YYYYYYYYY1'
+      color: 'ff2600'
       name: live
       roles:
         - readonly
         - developer
     - accountId: 'ZZZZZZZZZ1'
+      color: '932092'
       name: infrastructure
       roles:
         - readonly
         - developer
 - name: team2
+  switchRoleAccount: 'team2-alias'
   accounts:
     - accountId: 'XXXXXXXXX2'
+      color: '28c732'
       name: nonlive
       roles:
         - admin
     - accountId: 'YYYYYYYYY2'
+      color: 'ff2600'
       name: live
       roles:
         - readonly
     - accountId: 'ZZZZZZZZZ2'
+      color: '932092'
       name: infrastructure
       roles:
         - readonly
 - name: team3
+  switchRoleAccount: 'XXXXXXXXX3'
   additionalArgs: >-
     -profile team3
     -intermediate-profile team3-session
@@ -50,6 +59,7 @@ teams:
     -mfa-exec 'pass otp aws.amazon.com/team3'
   accounts:
   - accountId: 'XXXXXXXXXXX3'
+    color: '28c732'
     name: nonlive
     roles:
     - developer
@@ -59,6 +69,7 @@ teams:
       deploy: ./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}
       tf-plan: cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan
   - accountId: 'ZZZZZZZZZZZ3'
+    color: 'ff2600'
     name: live
     roles:
     - developer

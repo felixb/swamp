@@ -18,26 +18,30 @@ type aliasConfig struct {
 }
 
 type team struct {
-	Name           string    `yaml:"name"`
-	AdditionalArgs string    `yaml:"additionalArgs"`
-	Accounts       []account `yaml:"accounts"`
+	Name              string    `yaml:"name"`
+	AdditionalArgs    string    `yaml:"additionalArgs"`
+	Accounts          []account `yaml:"accounts"`
+	SwitchRoleAccount string    `yaml:"switchRoleAccount"`
 }
 
 type account struct {
-	AccountId string            `yaml:"accountId"`
-	Name      string            `yaml:"name"`
-	Roles     []string          `yaml:"roles"`
-	Execs     map[string]string `yaml:"execs"`
+	AccountId         string            `yaml:"accountId"`
+	Color             string            `yaml:"color"`
+	Name              string            `yaml:"name"`
+	Roles             []string          `yaml:"roles"`
+	Execs             map[string]string `yaml:"execs"`
 }
 
 type templateVars struct {
-	AccountId   string
-	AccountName string
-	AliasName   string
-	Args        template.HTML
-	ProfileName string
-	Role        string
-	TeamName    string
+	AccountId     string
+	AccountName   string
+	AliasName     string
+	Args          template.HTML
+	Color         string
+	ProfileName   string
+	Role          string
+	SourceProfile string
+	TeamName      string
 }
 
 const (
@@ -54,8 +58,12 @@ function swamp-{{.AliasName}}() {
 `
 )
 
-func generateAliases(w io.Writer, path string) error {
-	fmt.Fprintln(w, "# This aliases are generated with swamp")
+func generateAliases(w io.Writer, path string, extendSwitchRoles bool) error {
+	if extendSwitchRoles {
+		_, _ = fmt.Fprintln(w, "# This extend switch roles config is generated with swamp")
+	} else {
+		_, _ = fmt.Fprintln(w, "# This aliases are generated with swamp")
+	}
 
 	c := &aliasConfig{}
 	if bytes, err := ioutil.ReadFile(path); err != nil {
@@ -66,7 +74,7 @@ func generateAliases(w io.Writer, path string) error {
 		}
 
 		for _, team := range c.Teams {
-			if err := generateAliasTeam(w, c, team); err != nil {
+			if err := generateAliasTeam(w, c, team, extendSwitchRoles); err != nil {
 				return err
 			}
 		}
@@ -74,27 +82,37 @@ func generateAliases(w io.Writer, path string) error {
 	return nil
 }
 
-func generateAliasTeam(w io.Writer, config *aliasConfig, team team) error {
+func generateAliasTeam(w io.Writer, config *aliasConfig, team team, extendSwitchRoles bool) error {
+	if extendSwitchRoles {
+		_ = generateExtendSwitchRolesBaseConfig(w, team)
+	}
+
 	for _, account := range team.Accounts {
-		if err := generateAliasAccount(w, config, team, account); err != nil {
+		if err := generateAliasAccount(w, config, team, account, extendSwitchRoles); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func generateAliasAccount(w io.Writer, config *aliasConfig, team team, account account) error {
+func generateAliasAccount(w io.Writer, config *aliasConfig, team team, account account, extendSwitchRoles bool) error {
 	if tpl, err := template.New("aliases").Option("missingkey=error").Parse(aliasTemplate); err != nil {
 		return err
 	} else {
 		for _, role := range account.Roles {
-			generateAliasRole(w, config, team, account, role, tpl)
+			generateAliasRole(w, config, team, account, role, extendSwitchRoles, tpl)
 		}
 	}
 	return nil
 }
 
-func generateAliasRole(w io.Writer, config *aliasConfig, team team, account account, role string, tpl *template.Template) {
+func generateAliasRole(w io.Writer, config *aliasConfig, team team, account account, role string, extendSwitchRoles bool, tpl *template.Template) {
+	if extendSwitchRoles {
+		_ = generateExtendSwitchRolesConfigForAccount(w, team, account, role)
+		return
+	}
+
 	profileName := team.Name + "-" + account.Name + "-" + role
 	args := config.AllArgs
 	if team.AdditionalArgs != "" {
@@ -117,9 +135,11 @@ func generateAliasRole(w io.Writer, config *aliasConfig, team team, account acco
 		Role:        role,
 		TeamName:    team.Name,
 	}
-	tpl.Execute(w, t)
+	_ = tpl.Execute(w, t)
 	generateExecs(w, baseArgs, profileName, tpl, t, config.AllExecs)
 	generateExecs(w, baseArgs, profileName, tpl, t, account.Execs)
+
+
 }
 
 func generateExecs(w io.Writer, baseArgs string, profileName string, tpl *template.Template, t templateVars, execs map[string]string) {
@@ -132,6 +152,6 @@ func generateExecs(w io.Writer, baseArgs string, profileName string, tpl *templa
 	for _, k := range keys {
 		t.AliasName = profileName + "-" + k
 		t.Args = template.HTML(baseArgs + ` -exec "` + execs[k] + `"`)
-		tpl.Execute(w, t)
+		_ = tpl.Execute(w, t)
 	}
 }

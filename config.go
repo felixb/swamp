@@ -18,6 +18,7 @@ const (
 
 type SwampConfig struct {
 	aliasConfig          string
+	extendSwitchRoles    bool
 	targetAccount        string
 	intermediateProfile  string
 	intermediateDuration int64
@@ -84,6 +85,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "No-op, deprecated")
 	flag.BoolVar(&config.renew, "renew", config.renew, "Renew token every duration/2")
 	flag.BoolVar(&config.quiet, "quiet", config.quiet, "Suppress output")
+	flag.BoolVar(&config.extendSwitchRoles, "extend-switch-roles", config.extendSwitchRoles, "Output extend switch config")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.StringVar(&config.aliasConfig, "alias-config", config.aliasConfig, "Generate aliases from yaml `file`")

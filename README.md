@@ -119,6 +119,15 @@ swamp -alias-config example/config.yaml >> ~/.bashrc
 ```
 The output `example/bash_aliases.sh` file is generated from the example config `example/config.yaml`.
 
+### Generating "AWS Extend Switch Roles" config
+
+If you use the AWS Extend Switch Roles plugin in firefox you can generate the config for it like the aliases with swamp.
+
+swamp -alias-config example/config.yaml --extend-switch-roles
+
+[AWS Extend Switch Roles Firefox](https://addons.mozilla.org/ja/firefox/addon/aws-extend-switch-roles3/)
+[AWS Extend Switch Roles Chrome](https://chrome.google.com/webstore/detail/aws-extend-switch-roles/jpmkfafbacpgapdghgdpembnojdlgkdl)
+[AWS Extend Switch Roles Github](https://github.com/tilfin/aws-extend-switch-roles)
 
 ## Install
 
