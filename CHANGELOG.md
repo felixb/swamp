@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.10.1
+
+* `-extend-switch-roles` generates AWS Extend Switch Roles config
+
 ## swamp v0.10.0
 
 * `-alias-config` generates shell aliases
