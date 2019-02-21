@@ -18,7 +18,7 @@ const (
 
 type SwampConfig struct {
 	aliasConfig          string
-	extendSwitchRoles    bool
+	extendSwitchRoles    string
 	targetAccount        string
 	intermediateProfile  string
 	intermediateDuration int64
@@ -85,7 +85,7 @@ func (config *SwampConfig) SetupFlags() {
 	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "No-op, deprecated")
 	flag.BoolVar(&config.renew, "renew", config.renew, "Renew token every duration/2")
 	flag.BoolVar(&config.quiet, "quiet", config.quiet, "Suppress output")
-	flag.BoolVar(&config.extendSwitchRoles, "extend-switch-roles", config.extendSwitchRoles, "Output extend switch config")
+	flag.StringVar(&config.extendSwitchRoles, "extend-switch-roles", config.extendSwitchRoles, "Output extend switch config")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 		// platform specific flags
 		flag.StringVar(&config.aliasConfig, "alias-config", config.aliasConfig, "Generate aliases from yaml `file`")
@@ -145,18 +145,20 @@ func (config *SwampConfig) validateDefaultFlags() error {
 	return nil
 }
 
-func (config *SwampConfig) validateAliasFlags() error {
-	if _, err := os.Stat(config.aliasConfig); os.IsNotExist(err) {
+func (config *SwampConfig) validateFileExists(name string) error {
+	if _, err := os.Stat(name); os.IsNotExist(err) {
 		return err
 	}
 	return nil
 }
 
 func (config *SwampConfig) Validate() error {
-	if config.aliasConfig == "" {
+	if config.aliasConfig == "" && config.extendSwitchRoles == "" {
 		return config.validateDefaultFlags()
+	} else if config.extendSwitchRoles != "" {
+		return config.validateFileExists(config.extendSwitchRoles)
 	} else {
-		return config.validateAliasFlags()
+		return config.validateFileExists(config.aliasConfig)
 	}
 }
 

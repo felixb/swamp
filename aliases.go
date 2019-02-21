@@ -58,15 +58,19 @@ function swamp-{{.AliasName}}() {
 `
 )
 
-func generateAliases(w io.Writer, path string, extendSwitchRoles bool) error {
-	if extendSwitchRoles {
+func generateAliases(w io.Writer, path string, extendSwitchRoles string) error {
+	var bytes []byte
+	var err error
+	if extendSwitchRoles != "" {
 		_, _ = fmt.Fprintln(w, "# This extend switch roles config is generated with swamp")
+		bytes, err = ioutil.ReadFile(extendSwitchRoles)
 	} else {
 		_, _ = fmt.Fprintln(w, "# This aliases are generated with swamp")
+		bytes, err = ioutil.ReadFile(path)
 	}
 
 	c := &aliasConfig{}
-	if bytes, err := ioutil.ReadFile(path); err != nil {
+	if err != nil {
 		return err
 	} else {
 		if err := yaml.Unmarshal(bytes, c); err != nil {
@@ -74,7 +78,7 @@ func generateAliases(w io.Writer, path string, extendSwitchRoles bool) error {
 		}
 
 		for _, team := range c.Teams {
-			if err := generateAliasTeam(w, c, team, extendSwitchRoles); err != nil {
+			if err := generateAliasTeam(w, c, team, extendSwitchRoles != ""); err != nil {
 				return err
 			}
 		}

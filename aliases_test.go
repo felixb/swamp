@@ -13,7 +13,7 @@ func TestAliases_Generate(t *testing.T) {
 	r, w := io.Pipe()
 
 	go func() {
-		generateAliases(w, "example/config.yaml", false)
+		generateAliases(w, "example/config.yaml", "")
 		w.Close()
 	}()
 
@@ -34,7 +34,7 @@ func TestAliases_ExtendSwitchRolesConfigGenerate(t *testing.T) {
 	r, w := io.Pipe()
 
 	go func() {
-		generateAliases(w, "example/config.yaml", true)
+		generateAliases(w, "", "example/config.yaml")
 		w.Close()
 	}()
 

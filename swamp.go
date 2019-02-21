@@ -215,7 +215,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	if config.aliasConfig == "" {
+	if config.aliasConfig == "" && config.extendSwitchRoles == "" {
 		assume(config)
 	} else {
 		if err := generateAliases(os.Stdout, config.aliasConfig, config.extendSwitchRoles); err != nil {
