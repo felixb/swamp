@@ -12,10 +12,10 @@ import (
 // the Writer's Write method. A Printer can be used simultaneously from
 // multiple goroutines; it guarantees to serialize access to the Writer.
 type Printer struct {
-	mu     sync.Mutex // ensures atomic writes; protects the following fields
-	out    io.Writer  // destination for output
-	buf    []byte     // for accumulating text to write
-	off    bool       // should we be quiet?
+	mu  sync.Mutex // ensures atomic writes; protects the following fields
+	out io.Writer  // destination for output
+	buf []byte     // for accumulating text to write
+	off bool       // should we be quiet?
 }
 
 // New creates a new Printer. The out variable sets the
@@ -37,7 +37,9 @@ func (p *Printer) SetOutput(w io.Writer) {
 // Output writes to the output destination. A newline is appended
 // if the last character of s is not already a newline.
 func (p *Printer) Output(s string) error {
-	if p.off { return nil }
+	if p.off {
+		return nil
+	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.buf = p.buf[:0]

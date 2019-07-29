@@ -19,7 +19,9 @@ func testPPrint(t *testing.T, useFormat bool, off bool) {
 		p.Println("hello", 23, "world")
 	}
 	line := buf.String()
-	if len(line) > 0 { line = line[0 : len(line)-1] }
+	if len(line) > 0 {
+		line = line[0 : len(line)-1]
+	}
 	if off {
 		assert.Equal(t, "", buf.String())
 	} else {
@@ -28,8 +30,8 @@ func testPPrint(t *testing.T, useFormat bool, off bool) {
 }
 
 func TestPAll(t *testing.T) {
-	testPPrint(t,false,false)
-	testPPrint(t,true,false)
-	testPPrint(t,false,true)
-	testPPrint(t,true,true)
+	testPPrint(t, false, false)
+	testPPrint(t, true, false)
+	testPPrint(t, false, true)
+	testPPrint(t, true, true)
 }
