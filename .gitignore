@@ -16,6 +16,3 @@
 .idea/
 .get-deps
 build
-*_amd64
-*_alpine
-*_darwin

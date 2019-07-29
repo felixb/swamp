@@ -4,7 +4,9 @@ BIN_DIR := build
 BIN_NAME := swamp
 CGO0_BINS := $(BIN_DIR)/$(BIN_NAME)-alpine-amd64 $(BIN_DIR)/$(BIN_NAME)-darwin-amd64 $(BIN_DIR)/$(BIN_NAME)-windows-amd64.exe $(BIN_DIR)/$(BIN_NAME)-windows-386.exe
 CGO1_BINS := $(BIN_DIR)/$(BIN_NAME)-linux-amd64
-BINS := $(CGO0_BINS) $(CGO1_BINS)
+LOCAL_BIN := $(BIN_DIR)/$(BIN_NAME)
+BINS := $(CGO0_BINS) $(CGO1_BINS) $(LOCAL_BIN)
+TARGET ?= $(HOME)/bin
 VERSION=$(shell git describe --tags)
 
 temp=$(subst -, ,$@)
@@ -14,6 +16,9 @@ arch=$(subst .exe,,$(word 3, $(temp)))
 all: test build
 
 build: $(BINS)
+
+install: $(LOCAL_BIN)
+	cp $(LOCAL_BIN) $(TARGET)/
 
 .get-deps: *.go
 	go get -t -d -v ./...
@@ -30,6 +35,9 @@ $(CGO0_BINS): .get-deps *.go
 
 $(CGO1_BINS): .get-deps *.go
 	GOOS=$(os) GOARCH=$(arch) CGO_ENABLED=1 go build -o '$@' *.go
+
+$(LOCAL_BIN): .get-deps *.go
+	go build -o '$@' *.go
 
 fmt: *.go
 	go fmt *.go

@@ -122,4 +122,5 @@ The output `example/bash_aliases.sh` file is generated from the example config `
 
 ## Install
 
-Fetch the latest binary from https://github.com/felixb/swamp/releases or run `make` to compile it yourself.
+Fetch the latest binary from https://github.com/felixb/swamp/releases.
+You may install it from source by running `make install` optionally setting something like  `TARGET=/usr/local/bin/` to specify a different installation target.
