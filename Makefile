@@ -20,23 +20,19 @@ build: $(BINS)
 install: $(LOCAL_BIN)
 	cp $(LOCAL_BIN) $(TARGET)/
 
-.get-deps: *.go
-	go get -t -d -v ./...
-	touch .get-deps
-
 clean:
-	rm -rf .get-deps $(BIN_DIR)
+	rm -rf $(BIN_DIR)
 
-test: .get-deps *.go
+test:
 	go test -v -cover ./...
 
-$(CGO0_BINS): .get-deps *.go
+$(CGO0_BINS):
 	GOOS=$(os) GOARCH=$(arch) CGO_ENABLED=0 go build -o '$@' *.go
 
-$(CGO1_BINS): .get-deps *.go
+$(CGO1_BINS):
 	GOOS=$(os) GOARCH=$(arch) CGO_ENABLED=1 go build -o '$@' *.go
 
-$(LOCAL_BIN): .get-deps *.go
+$(LOCAL_BIN):
 	go build -o '$@' *.go
 
 fmt: *.go
