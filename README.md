@@ -122,5 +122,9 @@ The output `example/bash_aliases.sh` file is generated from the example config `
 
 ## Install
 
+### General
 Fetch the latest binary from https://github.com/felixb/swamp/releases.
 You may install it from source by running `make install` optionally setting something like  `TARGET=/usr/local/bin/` to specify a different installation target.
+
+### macOS
+You can install swamp on macOS using [brew](https://brew.sh/) with a third-party repository. Simply run `brew tap splieth/swamp` to add the repository and then `brew install swamp` to install the binary.
