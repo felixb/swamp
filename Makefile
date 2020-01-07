@@ -26,13 +26,13 @@ clean:
 test:
 	go test -v -cover ./...
 
-$(CGO0_BINS):
+$(CGO0_BINS): *.go
 	GOOS=$(os) GOARCH=$(arch) CGO_ENABLED=0 go build -o '$@' *.go
 
-$(CGO1_BINS):
+$(CGO1_BINS): *.go
 	GOOS=$(os) GOARCH=$(arch) CGO_ENABLED=1 go build -o '$@' *.go
 
-$(LOCAL_BIN):
+$(LOCAL_BIN): *.go
 	go build -o '$@' *.go
 
 fmt: *.go
