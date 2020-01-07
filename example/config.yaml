@@ -52,8 +52,8 @@ teams:
   - accountId: 'XXXXXXXXXXX3'
     name: nonlive
     roles:
-    - developer
-    - admin
+    - users/developer
+    - users/admin
     execs:
       build: ./ci/build.sh
       deploy: ./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}
@@ -61,8 +61,8 @@ teams:
   - accountId: 'ZZZZZZZZZZZ3'
     name: live
     roles:
-    - developer
-    - admin
+    - users/developer
+    - users/admin
     execs:
       deploy: ./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}
       tf-plan: cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan

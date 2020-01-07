@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.11.0
+
+* `-alias-config`: support roles with `/`
+
 ## swamp v0.10.0
 
 * `-alias-config` generates shell aliases

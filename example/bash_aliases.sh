@@ -320,210 +320,210 @@ function swamp-team2-infrastructure-readonly-tf-init() {
     swamp -region eu-central-1 -profile default -mfa-device arn:aws:iam::AAAAAAAAA:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/default' -account 'ZZZZZZZZZ2' -target-role 'readonly' -target-profile 'team2-infrastructure-readonly' -exec "cd '${1}' && terraform init"
 }
 
-function swamp-team3-nonlive-developer() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' "${@}"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' "${@}"
 }
 
-function swamp-team3-nonlive-developer-bash() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer-bash() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' -exec "bash"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' -exec "bash"
 }
 
-function swamp-team3-nonlive-developer-info() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer-info() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' -exec "aws sts get-caller-identity --output json"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' -exec "aws sts get-caller-identity --output json"
 }
 
-function swamp-team3-nonlive-developer-tf-init() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer-tf-init() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' -exec "cd '${1}' && terraform init"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' -exec "cd '${1}' && terraform init"
 }
 
-function swamp-team3-nonlive-developer-build() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer-build() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' -exec "./ci/build.sh"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' -exec "./ci/build.sh"
 }
 
-function swamp-team3-nonlive-developer-deploy() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer-deploy() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
 }
 
-function swamp-team3-nonlive-developer-tf-plan() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-developer' \
+function swamp-team3-nonlive-users-developer-tf-plan() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-developer' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'developer' -target-profile 'team3-nonlive-developer' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/developer' -target-profile 'team3-nonlive-users-developer' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
 }
 
-function swamp-team3-nonlive-admin() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' "${@}"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' "${@}"
 }
 
-function swamp-team3-nonlive-admin-bash() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin-bash() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' -exec "bash"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' -exec "bash"
 }
 
-function swamp-team3-nonlive-admin-info() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin-info() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' -exec "aws sts get-caller-identity --output json"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' -exec "aws sts get-caller-identity --output json"
 }
 
-function swamp-team3-nonlive-admin-tf-init() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin-tf-init() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' -exec "cd '${1}' && terraform init"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' -exec "cd '${1}' && terraform init"
 }
 
-function swamp-team3-nonlive-admin-build() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin-build() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' -exec "./ci/build.sh"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' -exec "./ci/build.sh"
 }
 
-function swamp-team3-nonlive-admin-deploy() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin-deploy() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
 }
 
-function swamp-team3-nonlive-admin-tf-plan() {
-  SWAMP_TARGET_PROFILE='team3-nonlive-admin' \
+function swamp-team3-nonlive-users-admin-tf-plan() {
+  SWAMP_TARGET_PROFILE='team3-nonlive-users-admin' \
     SWAMP_ACCOUNT='XXXXXXXXXXX3' \
     SWAMP_ACCOUNT_NAME='nonlive' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'admin' -target-profile 'team3-nonlive-admin' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'XXXXXXXXXXX3' -target-role 'users/admin' -target-profile 'team3-nonlive-users-admin' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
 }
 
-function swamp-team3-live-developer() {
-  SWAMP_TARGET_PROFILE='team3-live-developer' \
+function swamp-team3-live-users-developer() {
+  SWAMP_TARGET_PROFILE='team3-live-users-developer' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'developer' -target-profile 'team3-live-developer' "${@}"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/developer' -target-profile 'team3-live-users-developer' "${@}"
 }
 
-function swamp-team3-live-developer-bash() {
-  SWAMP_TARGET_PROFILE='team3-live-developer' \
+function swamp-team3-live-users-developer-bash() {
+  SWAMP_TARGET_PROFILE='team3-live-users-developer' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'developer' -target-profile 'team3-live-developer' -exec "bash"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/developer' -target-profile 'team3-live-users-developer' -exec "bash"
 }
 
-function swamp-team3-live-developer-info() {
-  SWAMP_TARGET_PROFILE='team3-live-developer' \
+function swamp-team3-live-users-developer-info() {
+  SWAMP_TARGET_PROFILE='team3-live-users-developer' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'developer' -target-profile 'team3-live-developer' -exec "aws sts get-caller-identity --output json"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/developer' -target-profile 'team3-live-users-developer' -exec "aws sts get-caller-identity --output json"
 }
 
-function swamp-team3-live-developer-tf-init() {
-  SWAMP_TARGET_PROFILE='team3-live-developer' \
+function swamp-team3-live-users-developer-tf-init() {
+  SWAMP_TARGET_PROFILE='team3-live-users-developer' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'developer' -target-profile 'team3-live-developer' -exec "cd '${1}' && terraform init"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/developer' -target-profile 'team3-live-users-developer' -exec "cd '${1}' && terraform init"
 }
 
-function swamp-team3-live-developer-deploy() {
-  SWAMP_TARGET_PROFILE='team3-live-developer' \
+function swamp-team3-live-users-developer-deploy() {
+  SWAMP_TARGET_PROFILE='team3-live-users-developer' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'developer' -target-profile 'team3-live-developer' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/developer' -target-profile 'team3-live-users-developer' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
 }
 
-function swamp-team3-live-developer-tf-plan() {
-  SWAMP_TARGET_PROFILE='team3-live-developer' \
+function swamp-team3-live-users-developer-tf-plan() {
+  SWAMP_TARGET_PROFILE='team3-live-users-developer' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='developer' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'developer' -target-profile 'team3-live-developer' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
+    SWAMP_TARGET_ROLE='users/developer' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/developer' -target-profile 'team3-live-users-developer' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
 }
 
-function swamp-team3-live-admin() {
-  SWAMP_TARGET_PROFILE='team3-live-admin' \
+function swamp-team3-live-users-admin() {
+  SWAMP_TARGET_PROFILE='team3-live-users-admin' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'admin' -target-profile 'team3-live-admin' "${@}"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/admin' -target-profile 'team3-live-users-admin' "${@}"
 }
 
-function swamp-team3-live-admin-bash() {
-  SWAMP_TARGET_PROFILE='team3-live-admin' \
+function swamp-team3-live-users-admin-bash() {
+  SWAMP_TARGET_PROFILE='team3-live-users-admin' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'admin' -target-profile 'team3-live-admin' -exec "bash"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/admin' -target-profile 'team3-live-users-admin' -exec "bash"
 }
 
-function swamp-team3-live-admin-info() {
-  SWAMP_TARGET_PROFILE='team3-live-admin' \
+function swamp-team3-live-users-admin-info() {
+  SWAMP_TARGET_PROFILE='team3-live-users-admin' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'admin' -target-profile 'team3-live-admin' -exec "aws sts get-caller-identity --output json"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/admin' -target-profile 'team3-live-users-admin' -exec "aws sts get-caller-identity --output json"
 }
 
-function swamp-team3-live-admin-tf-init() {
-  SWAMP_TARGET_PROFILE='team3-live-admin' \
+function swamp-team3-live-users-admin-tf-init() {
+  SWAMP_TARGET_PROFILE='team3-live-users-admin' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'admin' -target-profile 'team3-live-admin' -exec "cd '${1}' && terraform init"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/admin' -target-profile 'team3-live-users-admin' -exec "cd '${1}' && terraform init"
 }
 
-function swamp-team3-live-admin-deploy() {
-  SWAMP_TARGET_PROFILE='team3-live-admin' \
+function swamp-team3-live-users-admin-deploy() {
+  SWAMP_TARGET_PROFILE='team3-live-users-admin' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'admin' -target-profile 'team3-live-admin' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/admin' -target-profile 'team3-live-users-admin' -exec "./ci/deploy.sh \${SWAMP_ACCOUNT_NAME}"
 }
 
-function swamp-team3-live-admin-tf-plan() {
-  SWAMP_TARGET_PROFILE='team3-live-admin' \
+function swamp-team3-live-users-admin-tf-plan() {
+  SWAMP_TARGET_PROFILE='team3-live-users-admin' \
     SWAMP_ACCOUNT='ZZZZZZZZZZZ3' \
     SWAMP_ACCOUNT_NAME='live' \
-    SWAMP_TARGET_ROLE='admin' \
-    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'admin' -target-profile 'team3-live-admin' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
+    SWAMP_TARGET_ROLE='users/admin' \
+    swamp -region eu-central-1 -profile team3 -intermediate-profile team3-session -mfa-device arn:aws:iam::CCCCCCCCCC:mfa/BBBBBBBB -mfa-exec 'pass otp aws.amazon.com/team3' -account 'ZZZZZZZZZZZ3' -target-role 'users/admin' -target-profile 'team3-live-users-admin' -exec "cd '${1}' && terraform workspace select \${SWAMP_ACCOUNT_NAME} && terraform plan"
 }
