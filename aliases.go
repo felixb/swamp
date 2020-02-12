@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 type aliasConfig struct {
@@ -94,7 +95,7 @@ func generateAliasAccount(w io.Writer, config *aliasConfig, team team, account a
 
 func generateAliasRole(w io.Writer, config *aliasConfig, team team, account account, role string, tpl *template.Template) {
 	re := regexp.MustCompile(`[^a-zA-Z0-9_]`)
-	profileName := team.Name + "-" + account.Name + "-" + re.ReplaceAllString(role, "-")
+	profileName := strings.ToLower(team.Name + "-" + account.Name + "-" + re.ReplaceAllString(role, "-"))
 	args := config.AllArgs
 	if team.AdditionalArgs != "" {
 		args += " " + team.AdditionalArgs

@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.12.0
+
+* `-alias-config`: generate lowercase profile names and aliases
+
 ## swamp v0.11.0
 
 * `-alias-config`: support roles with `/`
