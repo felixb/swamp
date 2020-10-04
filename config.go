@@ -89,20 +89,18 @@ func (config *SwampConfig) SetupFlags() {
 }
 
 func (config *SwampConfig) validateDefaultFlags() error {
-	if err := checkStringFlagNotEmpty("target-profile", config.targetProfile); err != nil {
-		return err
-	}
-	if err := checkStringFlagNotEmpty("target-role", config.targetRole); err != nil {
-		return err
-	}
-
-	if !config.isRoleArn() {
-		if err := checkStringFlagNotEmpty("account", config.targetAccount); err != nil {
+	if config.targetRole != "" || config.tokenSerialNumber == "" {
+		if err := checkStringFlagNotEmpty("target-profile", config.targetProfile); err != nil {
 			return err
 		}
-	} else {
-		if config.targetAccount != "" {
-			return errors.New("Target role in ARN format and target account are mutual exclusive")
+		if !config.isRoleArn() {
+			if err := checkStringFlagNotEmpty("account", config.targetAccount); err != nil {
+				return err
+			}
+		} else {
+			if config.targetAccount != "" {
+				return errors.New("Target role in ARN format and target account are mutual exclusive")
+			}
 		}
 	}
 

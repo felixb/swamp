@@ -3,7 +3,8 @@
 ## swamp v0.12.0
 
 * `-alias-config`: generate lowercase profile names and aliases
-* `-export-profile` and `-export-file`: removed. Please use `-exec` instead. E.g. `-exec bash`.
+* `-target-account` and `-target-role`: allow empty parameters to create only intermediate/session profile
+* `-export-profile` and `-export-file`: removed. Please use `-exec` instead, e.g. `-exec bash`
 
 ## swamp v0.11.0
 

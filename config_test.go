@@ -6,7 +6,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSwampConfig_ValidateAccount(t *testing.T) {
+func TestSwampConfig_ValidateSessionProfileOnly(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetAccount = ""
+	c.targetRole = ""
+	c.targetProfile = ""
+	c.tokenSerialNumber = "someSerialNumber"
+
+	assert.NoError(t, c.Validate())
+}
+
+func TestSwampConfig_ValidateSessionProfileOnlyMissingMfaDevice(t *testing.T) {
+	c := NewSwampConfig()
+	c.targetAccount = ""
+	c.targetRole = ""
+	c.targetProfile = ""
+	c.tokenSerialNumber = ""
+
+	assert.Error(t, c.Validate())
+}
+
+func TestSwampConfig_ValidateAccountAndRoleName(t *testing.T) {
 	c := NewSwampConfig()
 	c.targetAccount = "1234567890"
 	c.targetRole = "some-role"
@@ -14,7 +34,7 @@ func TestSwampConfig_ValidateAccount(t *testing.T) {
 	assert.NoError(t, c.Validate())
 }
 
-func TestSwampConfig_ValidateRole(t *testing.T) {
+func TestSwampConfig_ValidateRoleArn(t *testing.T) {
 	c := NewSwampConfig()
 	c.targetAccount = ""
 	c.targetRole = "arn:aws:iam::1234567890:role/some-role"
@@ -22,7 +42,7 @@ func TestSwampConfig_ValidateRole(t *testing.T) {
 	assert.NoError(t, c.Validate())
 }
 
-func TestSwampConfig_ValidateRoleAndAccount(t *testing.T) {
+func TestSwampConfig_ValidateAccountAndRoleArn(t *testing.T) {
 	c := NewSwampConfig()
 	c.targetAccount = "1234567890"
 	c.targetRole = "arn:aws:iam::1234567890:role/some-role"
