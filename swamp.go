@@ -229,14 +229,16 @@ func assume(config *SwampConfig) {
 			ensureSessionTokenProfile(config, pw)
 		}
 
-		sess := session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
-		ensureTargetProfile(config, pw, sess)
+		if config.targetRole != "" {
+			sess := session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
+			ensureTargetProfile(config, pw, sess)
 
-		if config.exec != "" {
-			if err := execCommand(config); err != nil {
-				die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
-			} else {
-				printer.Printf("Executed \"%s\" sucessfully\n", config.exec)
+			if config.exec != "" {
+				if err := execCommand(config); err != nil {
+					die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
+				} else {
+					printer.Printf("Executed \"%s\" sucessfully\n", config.exec)
+				}
 			}
 		}
 

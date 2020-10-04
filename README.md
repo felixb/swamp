@@ -55,6 +55,15 @@ Wrote session token for profile target
 Token is valid until: 2017-07-06 08:32:15 +0000 UTC
 ```
 
+Or create a session profile only:
+
+```
+$ swamp -mfa-device arn:aws:iam::[origin-account-id]:mfa/[userid]
+Enter mfa token for arn:aws:iam::[origin-account-id]:mfa/[userid]: XXXXXX
+Wrote session token for profile session-token
+Token is valid until: 2017-07-06 20:32:09 +0000 UTC
+```
+
 ### Auto-Obtain MFA Token
 
 If using swamp with an mfa-enabled account you can use the `-mfa-exec` flag to tell swamp to try to obtain the token itself.
