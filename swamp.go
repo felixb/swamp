@@ -164,16 +164,6 @@ func ensureTargetProfile(config *SwampConfig, pw *ProfileWriter, sess *session.S
 	}
 }
 
-func writeProfileToFile(config *SwampConfig) {
-	file, err := os.Create(config.exportFile)
-	if err != nil {
-		die("Error writing target profile to export file", err)
-	}
-	defer file.Close()
-
-	fmt.Fprintf(file, "export AWS_PROFILE=%s\nunset AWS_ACCESS_KEY_ID\nunset AWS_SECRET_ACCESS_KEY\nunset AWS_SESSION_TOKEN\n", config.targetProfile)
-}
-
 func cleanCredentialsFromEnv(env []string) []string {
 	ret := env
 
@@ -241,10 +231,6 @@ func assume(config *SwampConfig) {
 
 		sess := session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
 		ensureTargetProfile(config, pw, sess)
-
-		if config.exportProfile {
-			writeProfileToFile(config)
-		}
 
 		if config.exec != "" {
 			if err := execCommand(config); err != nil {

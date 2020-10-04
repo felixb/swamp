@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"runtime"
 	"strings"
 )
@@ -30,8 +29,6 @@ type SwampConfig struct {
 	useInstanceProfile   bool
 	renew                bool
 	exec                 string
-	exportProfile        bool
-	exportFile           string
 	mfaExec              string
 	quiet                bool
 }
@@ -51,8 +48,6 @@ func NewSwampConfig() *SwampConfig {
 		useInstanceProfile:   false,
 		renew:                false,
 		exec:                 "",
-		exportProfile:        false,
-		exportFile:           path.Join(os.TempDir(), "current_swamp_profile"),
 		mfaExec:              "",
 		quiet:                false,
 	}
@@ -88,8 +83,6 @@ func (config *SwampConfig) SetupFlags() {
 		// platform specific flags
 		flag.StringVar(&config.aliasConfig, "alias-config", config.aliasConfig, "Generate aliases from yaml `file`")
 		flag.StringVar(&config.exec, "exec", config.exec, "Execute this commend with AWS_PROFILE set to target protile")
-		flag.BoolVar(&config.exportProfile, "export-profile", config.exportProfile, "Set AWS_PROFILE in environment")
-		flag.StringVar(&config.exportFile, "export-file", config.exportFile, "File to write AWS_PROFILE to")
 		flag.StringVar(&config.mfaExec, "mfa-exec", config.mfaExec, "Executable command for obtaining mfa-device token")
 	}
 	flag.Usage = flagUsage
@@ -113,10 +106,6 @@ func (config *SwampConfig) validateDefaultFlags() error {
 		}
 	}
 
-	if config.exportProfile && config.renew {
-		return errors.New("Using renew and export-profile is mutual exclusive")
-	}
-
 	if config.useInstanceProfile {
 		fmt.Println("Option -instance is deprecated as -profile allows empty values.")
 		fmt.Println("It will be removed in future releases.")
@@ -130,12 +119,6 @@ func (config *SwampConfig) validateDefaultFlags() error {
 
 	if config.mfaExec != "" {
 		if err := checkStringFlagNotEmpty("mfa-device", config.tokenSerialNumber); err != nil {
-			return err
-		}
-	}
-
-	if config.exportProfile {
-		if err := checkStringFlagNotEmpty("export-file", config.exportFile); err != nil {
 			return err
 		}
 	}
