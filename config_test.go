@@ -1,9 +1,8 @@
 package main
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSwampConfig_ValidateSessionProfileOnly(t *testing.T) {

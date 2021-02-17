@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
+	"github.com/go-ini/ini"
+	"github.com/golang-utils/lockfile"
 	"os"
 	"os/user"
 	"path/filepath"
 	"time"
-
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/go-ini/ini"
-	"github.com/golang-utils/lockfile"
 )
 
 type ProfileWriter struct {
@@ -49,7 +48,7 @@ func getCredentialsPath() (string, error) {
 	}
 }
 
-func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region *string) error {
+func (pw *ProfileWriter) WriteProfile(cred *types.Credentials, profileName, region string) error {
 	pw.acquire_lock()
 	defer pw.release_lock()
 
@@ -69,7 +68,7 @@ func (pw *ProfileWriter) WriteProfile(cred *sts.Credentials, profileName, region
 		}
 	}
 
-	printer.Printf("Wrote session token for profile %s\n", *profileName)
+	printer.Printf("Wrote session token for profile %s\n", profileName)
 	printer.Printf("Token is valid until: %v\n", cred.Expiration)
 
 	return nil
@@ -105,27 +104,27 @@ func (pw *ProfileWriter) getOrCreateCredentialsFile() (*ini.File, error) {
 	return cfg, nil
 }
 
-func (pw *ProfileWriter) getOrCreateSection(cfg *ini.File, profileName *string) (*ini.Section, error) {
-	sec, err := cfg.GetSection(*profileName)
+func (pw *ProfileWriter) getOrCreateSection(cfg *ini.File, profileName string) (*ini.Section, error) {
+	sec, err := cfg.GetSection(profileName)
 	if err != nil {
-		if sec, err = cfg.NewSection(*profileName); err != nil {
-			return nil, fmt.Errorf("Error creating new profile %s: %s", *profileName, err)
+		if sec, err = cfg.NewSection(profileName); err != nil {
+			return nil, fmt.Errorf("Error creating new profile %s: %s", profileName, err)
 		}
 	}
 	return sec, err
 }
 
-func (pw *ProfileWriter) writeSection(sec *ini.Section, cred *sts.Credentials, region *string) error {
-	if err := pw.writeKey(sec, "aws_access_key_id", cred.AccessKeyId); err != nil {
+func (pw *ProfileWriter) writeSection(sec *ini.Section, cred *types.Credentials, region string) error {
+	if err := pw.writeKey(sec, "aws_access_key_id", *cred.AccessKeyId); err != nil {
 		return err
 	}
-	if err := pw.writeKey(sec, "aws_secret_access_key", cred.SecretAccessKey); err != nil {
+	if err := pw.writeKey(sec, "aws_secret_access_key", *cred.SecretAccessKey); err != nil {
 		return err
 	}
-	if err := pw.writeKey(sec, "aws_session_token", cred.SessionToken); err != nil {
+	if err := pw.writeKey(sec, "aws_session_token", *cred.SessionToken); err != nil {
 		return err
 	}
-	if region != nil && *region != "" {
+	if region != "" {
 		if err := pw.writeKey(sec, "region", region); err != nil {
 			return err
 		}
@@ -133,13 +132,13 @@ func (pw *ProfileWriter) writeSection(sec *ini.Section, cred *sts.Credentials, r
 	return nil
 }
 
-func (pw *ProfileWriter) writeKey(sec *ini.Section, name string, value *string) error {
+func (pw *ProfileWriter) writeKey(sec *ini.Section, name string, value string) error {
 	if key, err := sec.GetKey(name); err != nil {
-		if _, err := sec.NewKey(name, *value); err != nil {
+		if _, err := sec.NewKey(name, value); err != nil {
 			return fmt.Errorf("Error writing config key %s: %s", name, err)
 		}
 	} else {
-		key.SetValue(*value)
+		key.SetValue(value)
 	}
 	return nil
 }

@@ -2,16 +2,17 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 func die(msg string, err error) {
@@ -29,8 +30,8 @@ func dieSlow(msg, longMsg string, err error) {
 	os.Exit(1)
 }
 
-func getCallerId(svc *sts.STS) *sts.GetCallerIdentityOutput {
-	output, err := svc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+func getCallerId(ctx context.Context, svc *sts.Client) *sts.GetCallerIdentityOutput {
+	output, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		die("Error fetching caller id", err)
 	}
@@ -63,26 +64,25 @@ func askForTokenCode(tokenSerialNumber string) string {
 	}
 }
 
-func getTokenCode(config *SwampConfig) string {
+func getTokenCode(swampConfig *SwampConfig) string {
 	var tokenCode string
-	if config.mfaExec != "" {
-		tokenCode = fetchTokenCode(config.tokenSerialNumber, config.mfaExec)
+	if swampConfig.mfaExec != "" {
+		tokenCode = fetchTokenCode(swampConfig.tokenSerialNumber, swampConfig.mfaExec)
 	} else {
-		tokenCode = askForTokenCode(config.tokenSerialNumber)
+		tokenCode = askForTokenCode(swampConfig.tokenSerialNumber)
 	}
 	return cleanTokenCode(tokenCode)
 }
 
-func validateSessionToken(options session.Options) bool {
-	sess := session.Must(session.NewSessionWithOptions(options))
-	svc := sts.New(sess)
-	_, err := svc.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+func validateSessionToken(ctx context.Context, awsConfig aws.Config) bool {
+	svc := sts.NewFromConfig(awsConfig)
+	_, err := svc.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	return err == nil
 }
 
-func guessCurrentProfile(config *SwampConfig) string {
-	if config.profile != "" {
-		return config.profile
+func guessCurrentProfile(swampConfig *SwampConfig) string {
+	if swampConfig.profile != "" {
+		return swampConfig.profile
 	}
 
 	profileFromEnv := os.Getenv("AWS_PROFILE")
@@ -93,52 +93,55 @@ func guessCurrentProfile(config *SwampConfig) string {
 	return "default"
 }
 
-func getSessionToken(sess *session.Session, config *SwampConfig) *sts.Credentials {
-	svc := sts.New(sess)
-	tokenCode := getTokenCode(config)
-	output, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
-		DurationSeconds: &config.intermediateDuration,
-		SerialNumber:    &config.tokenSerialNumber,
+func getSessionToken(ctx context.Context, swampConfig *SwampConfig, awsConfig aws.Config) *types.Credentials {
+	svc := sts.NewFromConfig(awsConfig)
+	tokenCode := getTokenCode(swampConfig)
+	output, err := svc.GetSessionToken(ctx, &sts.GetSessionTokenInput{
+		DurationSeconds: aws.Int32(int32(swampConfig.intermediateDuration)),
+		SerialNumber:    &swampConfig.tokenSerialNumber,
 		TokenCode:       &tokenCode,
 	})
 	if err != nil {
-		dieSlow("Error getting session token", fmt.Sprintf(`Make sure your current profile %s is valid and allows running "aws sts get-session-token".`, guessCurrentProfile(config)), err)
+		dieSlow("Error getting session token", fmt.Sprintf(`Make sure your current profile %s is valid and allows running "aws sts get-session-token".`, guessCurrentProfile(swampConfig)), err)
 	}
 
 	return output.Credentials
 }
 
-func getIntermediateSessionOptions(config *SwampConfig) session.Options {
-	return newSessionOptions(&config.intermediateProfile, &config.region)
+func getIntermediateSessionOptions(ctx context.Context, swampConfig *SwampConfig) aws.Config {
+	return newSessionOptions(ctx, swampConfig.intermediateProfile, swampConfig.region)
 }
 
-func getBaseSessionOptions(config *SwampConfig) session.Options {
-	return newSessionOptions(&config.profile, &config.region)
+func getBaseSessionOptions(ctx context.Context, swampConfig *SwampConfig) aws.Config {
+	return newSessionOptions(ctx, swampConfig.profile, swampConfig.region)
 }
 
-func newSessionOptions(profile, region *string) session.Options {
-	return session.Options{
-		Config:  aws.Config{Region: region},
-		Profile: *profile}
+func newSessionOptions(ctx context.Context, profile, region string) aws.Config {
+	if cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region), config.WithSharedConfigProfile(profile)); err != nil {
+		die("Error loading aws config", err)
+		return cfg
+	} else {
+		return cfg
+	}
 }
 
 // validate session token and request a new one if it's invalid.
 // write target profile into .aws/credentials
-func ensureSessionTokenProfile(config *SwampConfig, pw *ProfileWriter) {
-	printer.Printf("Checking if profile %s is still valid\n", config.intermediateProfile)
-	if validateSessionToken(getIntermediateSessionOptions(config)) {
-		printer.Printf("Session token for profile %s is still valid\n", config.intermediateProfile)
+func ensureSessionTokenProfile(ctx context.Context, swampConfig *SwampConfig, pw *ProfileWriter) {
+	printer.Printf("Checking if profile %s is still valid\n", swampConfig.intermediateProfile)
+	if validateSessionToken(ctx, getIntermediateSessionOptions(ctx, swampConfig)) {
+		printer.Printf("Session token for profile %s is still valid\n", swampConfig.intermediateProfile)
 	} else {
-		sess := session.Must(session.NewSessionWithOptions(getBaseSessionOptions(config)))
-		cred := getSessionToken(sess, config)
-		if err := pw.WriteProfile(cred, &config.intermediateProfile, sess.Config.Region); err != nil {
+		awsConfig := getBaseSessionOptions(ctx, swampConfig)
+		cred := getSessionToken(ctx, swampConfig, awsConfig)
+		if err := pw.WriteProfile(cred, swampConfig.intermediateProfile, awsConfig.Region); err != nil {
 			die("Error writing profile", err)
 		}
 	}
 }
 
-func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64) *sts.Credentials {
-	output, err := svc.AssumeRole(&sts.AssumeRoleInput{
+func assumeRole(ctx context.Context, svc *sts.Client, roleArn, roleSessionName *string, duration *int32) *types.Credentials {
+	output, err := svc.AssumeRole(ctx, &sts.AssumeRoleInput{
 		RoleArn:         roleArn,
 		RoleSessionName: roleSessionName,
 		DurationSeconds: duration,
@@ -151,15 +154,15 @@ func assumeRole(svc *sts.STS, roleArn, roleSessionName *string, duration *int64)
 }
 
 // assume-role into target account and write target profile into .aws/credentials
-func ensureTargetProfile(config *SwampConfig, pw *ProfileWriter, sess *session.Session) {
-	svc := sts.New(sess)
+func ensureTargetProfile(ctx context.Context, swampConfig *SwampConfig, pw *ProfileWriter, awsConfig aws.Config) {
+	svc := sts.NewFromConfig(awsConfig)
 
-	userId := getCallerId(svc).Arn
+	userId := getCallerId(ctx, svc).Arn
 	parts := strings.Split(*userId, "/")
 	roleSessionName := parts[len(parts)-1]
 
-	cred := assumeRole(svc, config.GetRoleArn(), &roleSessionName, &config.targetDuration)
-	if err := pw.WriteProfile(cred, &config.targetProfile, sess.Config.Region); err != nil {
+	cred := assumeRole(ctx, svc, swampConfig.GetRoleArn(), &roleSessionName, aws.Int32(int32(swampConfig.targetDuration)))
+	if err := pw.WriteProfile(cred, swampConfig.targetProfile, awsConfig.Region); err != nil {
 		die("Error writing profile", err)
 	}
 }
@@ -179,9 +182,9 @@ func cleanCredentialsFromEnv(env []string) []string {
 	return ret
 }
 
-func execCommand(config *SwampConfig) error {
-	c := exec.Command("/bin/sh", "-c", config.exec)
-	c.Env = append(cleanCredentialsFromEnv(os.Environ()), fmt.Sprintf("AWS_PROFILE=%s", config.targetProfile))
+func execCommand(swampConfig *SwampConfig) error {
+	c := exec.Command("/bin/sh", "-c", swampConfig.exec)
+	c.Env = append(cleanCredentialsFromEnv(os.Environ()), fmt.Sprintf("AWS_PROFILE=%s", swampConfig.targetProfile))
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
@@ -190,61 +193,60 @@ func execCommand(config *SwampConfig) error {
 
 func main() {
 	// set up command line flags
-	config := NewSwampConfig()
-	config.SetupFlags()
+	swampConfig := NewSwampConfig()
+	swampConfig.SetupFlags()
 	flag.Parse()
 
 	// setup logging
-	if config.quiet {
+	if swampConfig.quiet {
 		printer.SetOff(true)
 	}
 
 	// check user input on command line flags
-	if err := config.Validate(); err != nil {
+	if err := swampConfig.Validate(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		flag.Usage()
 		os.Exit(1)
 	}
-	if config.aliasConfig == "" {
-		assume(config)
+	if swampConfig.aliasConfig == "" {
+		assume(context.Background(), swampConfig)
 	} else {
-		if err := generateAliases(os.Stdout, config.aliasConfig); err != nil {
-			die("Error generating alias config", err)
+		if err := generateAliases(os.Stdout, swampConfig.aliasConfig); err != nil {
+			die("Error generating alias swampConfig", err)
 		}
 	}
 }
 
-func assume(config *SwampConfig) {
-	baseProfile := &config.profile
-	if config.tokenSerialNumber != "" {
-		baseProfile = &config.intermediateProfile
+func assume(ctx context.Context, swampConfig *SwampConfig) {
+	baseProfile := swampConfig.profile
+	if swampConfig.tokenSerialNumber != "" {
+		baseProfile = swampConfig.intermediateProfile
 	}
 	pw, err := NewProfileWriter()
 	if err != nil {
 		die("Error initializing profile writer", err)
 	}
 	for {
-		if config.tokenSerialNumber != "" {
+		if swampConfig.tokenSerialNumber != "" {
 			// get intermediate session token with mfa, use that to assume role into target account
-			ensureSessionTokenProfile(config, pw)
+			ensureSessionTokenProfile(ctx, swampConfig, pw)
 		}
 
-		if config.targetRole != "" {
-			sess := session.Must(session.NewSessionWithOptions(newSessionOptions(baseProfile, &config.region)))
-			ensureTargetProfile(config, pw, sess)
+		if swampConfig.targetRole != "" {
+			ensureTargetProfile(ctx, swampConfig, pw, newSessionOptions(ctx, baseProfile, swampConfig.region))
 
-			if config.exec != "" {
-				if err := execCommand(config); err != nil {
-					die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, config.exec, config.targetProfile), err)
+			if swampConfig.exec != "" {
+				if err := execCommand(swampConfig); err != nil {
+					die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, swampConfig.exec, swampConfig.targetProfile), err)
 				} else {
-					printer.Printf("Executed \"%s\" sucessfully\n", config.exec)
+					printer.Printf("Executed \"%s\" sucessfully\n", swampConfig.exec)
 				}
 			}
 		}
 
-		if !config.renew {
+		if !swampConfig.renew {
 			break
 		}
-		time.Sleep(time.Second * time.Duration(config.targetDuration/2))
+		time.Sleep(time.Second * time.Duration(swampConfig.targetDuration/2))
 	}
 }

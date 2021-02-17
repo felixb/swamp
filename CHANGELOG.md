@@ -1,5 +1,9 @@
 # Changelog
 
+## swamp v0.13.0 (unreleased)
+
+* shrink binaries by updating to aws-sdk-2
+
 ## swamp v0.12.0
 
 * `-alias-config`: generate lowercase profile names and aliases

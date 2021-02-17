@@ -1,10 +1,9 @@
 package main
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSwamp_ExecutingMFACommand(t *testing.T) {

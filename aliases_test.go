@@ -2,11 +2,10 @@ package main
 
 import (
 	"bytes"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAliases_Generate(t *testing.T) {

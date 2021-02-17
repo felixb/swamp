@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
 	"testing"
-
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestProfileWriter_NewProfileWriterWithDefaults(t *testing.T) {
@@ -50,13 +50,14 @@ func TestProfileWriter_WriteProfile(t *testing.T) {
 
 	profileName := "some-profile"
 	region := "some-region"
-	creds := &sts.Credentials{}
-	creds.SetAccessKeyId("some-access-key")
-	creds.SetSecretAccessKey("some-secret-access-key")
-	creds.SetSessionToken("some-session-token")
+	creds := &types.Credentials{
+		AccessKeyId: aws.String("some-access-key"),
+		SecretAccessKey: aws.String("some-secret-access-key"),
+		SessionToken: aws.String("some-session-token"),
+	}
 
 	pw, _ := NewProfileWriter()
-	pw.WriteProfile(creds, &profileName, &region)
+	pw.WriteProfile(creds, profileName, region)
 
 	b, err := ioutil.ReadFile(credPath)
 	assert.NoError(t, err)
@@ -80,13 +81,14 @@ func TestProfileWriter_WriteProfileWoRegion(t *testing.T) {
 
 	profileName := "some-profile"
 	region := ""
-	creds := &sts.Credentials{}
-	creds.SetAccessKeyId("some-access-key")
-	creds.SetSecretAccessKey("some-secret-access-key")
-	creds.SetSessionToken("some-session-token")
+	creds := &types.Credentials{
+		AccessKeyId: aws.String("some-access-key"),
+		SecretAccessKey: aws.String("some-secret-access-key"),
+		SessionToken: aws.String("some-session-token"),
+	}
 
 	pw, _ := NewProfileWriter()
-	pw.WriteProfile(creds, &profileName, &region)
+	pw.WriteProfile(creds, profileName, region)
 
 	b, err := ioutil.ReadFile(credPath)
 	assert.NoError(t, err)
