@@ -1,4 +1,4 @@
-# SWAMP: Profile Manager for AWS [![Build Status](https://travis-ci.org/felixb/swamp.svg?branch=master)](https://travis-ci.org/felixb/swamp)
+# SWAMP: Profile Manager for AWS [![build](https://github.com/felixb/swamp/actions/workflows/go.yml/badge.svg)](https://github.com/felixb/swamp/actions/workflows/go.yml)
 
 You can use `swamp` to switch AWS profiles with ease.
 
