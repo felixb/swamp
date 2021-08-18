@@ -2,7 +2,7 @@
 
 BIN_DIR := build
 BIN_NAME := swamp
-CGO0_BINS := $(BIN_DIR)/$(BIN_NAME)-alpine-amd64 $(BIN_DIR)/$(BIN_NAME)-darwin-amd64 $(BIN_DIR)/$(BIN_NAME)-windows-amd64.exe $(BIN_DIR)/$(BIN_NAME)-windows-386.exe
+CGO0_BINS := $(BIN_DIR)/$(BIN_NAME)-alpine-amd64 $(BIN_DIR)/$(BIN_NAME)-darwin-amd64 $(BIN_DIR)/$(BIN_NAME)-windows-amd64.exe
 CGO1_BINS := $(BIN_DIR)/$(BIN_NAME)-linux-amd64
 LOCAL_BIN := $(BIN_DIR)/$(BIN_NAME)
 BINS := $(CGO0_BINS) $(CGO1_BINS) $(LOCAL_BIN)
