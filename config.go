@@ -12,7 +12,7 @@ import (
 const (
 	INTERMEDIATE_SESSION_TOKEN_DURATION = int64(12 * 60 * 60)
 	TARGET_SESSION_TOKEN_DURATION       = int64(60 * 60)
-	VERSION                             = "0.13.0"
+	VERSION                             = "0.14.0"
 )
 
 type SwampConfig struct {

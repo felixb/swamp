@@ -1,6 +1,6 @@
 # Changelog
 
-## swamp v0.14.0 (unreleased)
+## swamp v0.14.0
 
 Breaking changes:
 
