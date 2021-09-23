@@ -1,6 +1,12 @@
 # Changelog
 
-## swamp v0.13.0 (unreleased)
+## swamp v0.14.0 (unreleased)
+
+Breaking changes:
+
+* `-instance`: removed.
+
+## swamp v0.13.0
 
 * shrink binaries by updating to aws-sdk-2
 

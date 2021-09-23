@@ -45,7 +45,6 @@ func NewSwampConfig() *SwampConfig {
 		profile:              "",
 		region:               "",
 		tokenSerialNumber:    "",
-		useInstanceProfile:   false,
 		renew:                false,
 		exec:                 "",
 		mfaExec:              "",
@@ -76,7 +75,6 @@ func (config *SwampConfig) SetupFlags() {
 	flag.StringVar(&config.profile, "profile", config.profile, "AWS CLI profile")
 	flag.StringVar(&config.region, "region", config.region, "AWS region")
 	flag.StringVar(&config.tokenSerialNumber, "mfa-device", config.tokenSerialNumber, "MFA device arn")
-	flag.BoolVar(&config.useInstanceProfile, "instance", config.useInstanceProfile, "No-op, deprecated")
 	flag.BoolVar(&config.renew, "renew", config.renew, "Renew token every duration/2")
 	flag.BoolVar(&config.quiet, "quiet", config.quiet, "Suppress output")
 	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
@@ -102,11 +100,6 @@ func (config *SwampConfig) validateDefaultFlags() error {
 				return errors.New("Target role in ARN format and target account are mutual exclusive")
 			}
 		}
-	}
-
-	if config.useInstanceProfile {
-		fmt.Println("Option -instance is deprecated as -profile allows empty values.")
-		fmt.Println("It will be removed in future releases.")
 	}
 
 	if config.tokenSerialNumber != "" {
