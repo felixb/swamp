@@ -237,9 +237,9 @@ func assume(ctx context.Context, swampConfig *SwampConfig) {
 
 			if swampConfig.exec != "" {
 				if err := execCommand(swampConfig); err != nil {
-					die(fmt.Sprintf(`Error running command ""%s" with AWS profile "%s"`, swampConfig.exec, swampConfig.targetProfile), err)
+					die(fmt.Sprintf(`Error running command: "%s" with AWS profile: "%s"`, swampConfig.exec, swampConfig.targetProfile), err)
 				} else {
-					printer.Printf("Executed \"%s\" sucessfully\n", swampConfig.exec)
+					printer.Printf("Executed \"%s\" successfully\n", swampConfig.exec)
 				}
 			}
 		}
